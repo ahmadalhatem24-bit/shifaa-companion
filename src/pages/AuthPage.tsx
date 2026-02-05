@@ -102,7 +102,7 @@ export default function AuthPage() {
   });
 
   const selectedRole = form.watch('role');
-  const isProvider = ['doctor', 'pharmacist', 'hospital', 'laboratory'].includes(selectedRole);
+  const isProvider = ['doctor', 'pharmacist', 'hospital', 'laboratory', 'dental', 'cosmetic'].includes(selectedRole);
 
   const handleLogin = async (data: any) => {
     setIsLoading(true);
