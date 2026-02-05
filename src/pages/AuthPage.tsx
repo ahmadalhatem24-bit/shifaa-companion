@@ -33,6 +33,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { UserRole, SYRIAN_GOVERNORATES, MEDICAL_SPECIALIZATIONS } from '@/types';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const roles: { value: UserRole; label: string; icon: React.ElementType; description: string }[] = [
   { value: 'patient', label: 'مريض', icon: UserRound, description: 'احجز مواعيد وتابع صحتك' },
@@ -71,7 +72,7 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(!isSignup);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup, setDemoUser } = useAuth();
+  const { login, signup, setDemoUser, redirectBasedOnRole } = useAuth();
   const navigate = useNavigate();
 
   const form = useForm({
@@ -102,10 +103,21 @@ export default function AuthPage() {
   const handleLogin = async (data: any) => {
     setIsLoading(true);
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
+      const result = await login(data.email, data.password);
+      if (result.success) {
         toast.success('تم تسجيل الدخول بنجاح');
-        navigate('/');
+        // Fetch user role and redirect
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .single();
+        
+        const role = roleData?.role || 'patient';
+        const redirectPath = redirectBasedOnRole(role as any);
+        navigate(redirectPath);
+      } else {
+        toast.error(result.error || 'حدث خطأ في تسجيل الدخول');
       }
     } catch (error) {
       toast.error('حدث خطأ في تسجيل الدخول');
@@ -126,10 +138,13 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const step1Data = form.getValues();
-      const success = await signup({ ...step1Data, ...data });
-      if (success) {
-        toast.success('تم إنشاء الحساب بنجاح');
-        navigate('/');
+      const result = await signup({ ...step1Data, ...data });
+      if (result.success) {
+        toast.success('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب');
+        const redirectPath = redirectBasedOnRole(step1Data.role as any);
+        navigate(redirectPath);
+      } else {
+        toast.error(result.error || 'حدث خطأ في إنشاء الحساب');
       }
     } catch (error) {
       toast.error('حدث خطأ في إنشاء الحساب');
@@ -140,14 +155,16 @@ export default function AuthPage() {
 
   const handleDemoLogin = (role: UserRole) => {
     setDemoUser(role);
-    toast.success(`تم الدخول كـ ${role === 'patient' ? 'مريض' : role === 'doctor' ? 'طبيب' : 'مدير'} (عرض تجريبي)`);
-    if (role === 'patient') {
-      navigate('/');
-    } else if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/provider');
-    }
+    const roleLabels: Record<UserRole, string> = {
+      patient: 'مريض',
+      doctor: 'طبيب',
+      pharmacist: 'صيدلي',
+      hospital: 'مشفى',
+      laboratory: 'مختبر',
+      admin: 'مدير',
+    };
+    toast.success(`تم الدخول كـ ${roleLabels[role]} (عرض تجريبي)`);
+    navigate(redirectBasedOnRole(role));
   };
 
   return (

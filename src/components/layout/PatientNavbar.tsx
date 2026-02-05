@@ -102,7 +102,7 @@ export function PatientNavbar() {
                   <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-primary">
                     <User className="h-4 w-4" />
                   </div>
-                  <span>{user?.name}</span>
+                  <span>{user?.user_metadata?.full_name || user?.email}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
