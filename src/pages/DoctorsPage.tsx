@@ -66,7 +66,7 @@ export default function DoctorsPage() {
                   <SelectValue placeholder="التخصص" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع التخصصات</SelectItem>
+                  <SelectItem value="all">جميع التخصصات</SelectItem>
                   {MEDICAL_SPECIALIZATIONS.map((spec) => (
                     <SelectItem key={spec} value={spec}>{spec}</SelectItem>
                   ))}
