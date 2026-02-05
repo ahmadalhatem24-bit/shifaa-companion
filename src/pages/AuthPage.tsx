@@ -137,10 +137,13 @@ export default function AuthPage() {
     setIsLoading(true);
     try {
       const step1Data = form.getValues();
-      const success = await signup({ ...step1Data, ...data });
-      if (success) {
-        toast.success('تم إنشاء الحساب بنجاح');
-        navigate('/');
+      const result = await signup({ ...step1Data, ...data });
+      if (result.success) {
+        toast.success('تم إنشاء الحساب بنجاح! تحقق من بريدك الإلكتروني لتأكيد الحساب');
+        const redirectPath = redirectBasedOnRole(step1Data.role as any);
+        navigate(redirectPath);
+      } else {
+        toast.error(result.error || 'حدث خطأ في إنشاء الحساب');
       }
     } catch (error) {
       toast.error('حدث خطأ في إنشاء الحساب');
