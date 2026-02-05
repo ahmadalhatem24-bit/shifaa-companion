@@ -43,6 +43,8 @@ const roles: { value: UserRole; label: string; icon: React.ElementType; descript
   { value: 'pharmacist', label: 'صيدلي', icon: Pill, description: 'إدارة الصيدلية' },
   { value: 'hospital', label: 'مستشفى', icon: Building2, description: 'إدارة المستشفى' },
   { value: 'laboratory', label: 'مختبر', icon: FlaskConical, description: 'إدارة المختبر' },
+  { value: 'dental', label: 'عيادة أسنان', icon: Smile, description: 'إدارة عيادة الأسنان' },
+  { value: 'cosmetic', label: 'مركز تجميل', icon: Sparkles, description: 'إدارة مركز التجميل' },
 ];
 
 const step1Schema = z.object({
