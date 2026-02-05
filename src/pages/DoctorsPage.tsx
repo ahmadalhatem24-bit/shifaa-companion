@@ -23,13 +23,13 @@ import { useState } from 'react';
 
 export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGov, setSelectedGov] = useState<string>('');
-  const [selectedSpec, setSelectedSpec] = useState<string>('');
+  const [selectedGov, setSelectedGov] = useState<string>('all');
+  const [selectedSpec, setSelectedSpec] = useState<string>('all');
 
   const filteredDoctors = mockDoctors.filter((doctor) => {
     const matchesSearch = doctor.name.includes(searchQuery) || 
                           doctor.specialization.includes(searchQuery);
-    const matchesGov = !selectedGov || doctor.governorate === selectedGov;
+    const matchesGov = selectedGov === 'all' || doctor.governorate === selectedGov;
     const matchesSpec = !selectedSpec || doctor.specialization === selectedSpec;
     return matchesSearch && matchesGov && matchesSpec;
   });
