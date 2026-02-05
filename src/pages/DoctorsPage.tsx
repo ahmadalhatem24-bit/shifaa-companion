@@ -30,7 +30,7 @@ export default function DoctorsPage() {
     const matchesSearch = doctor.name.includes(searchQuery) || 
                           doctor.specialization.includes(searchQuery);
     const matchesGov = selectedGov === 'all' || doctor.governorate === selectedGov;
-    const matchesSpec = !selectedSpec || doctor.specialization === selectedSpec;
+    const matchesSpec = selectedSpec === 'all' || doctor.specialization === selectedSpec;
     return matchesSearch && matchesGov && matchesSpec;
   });
 
