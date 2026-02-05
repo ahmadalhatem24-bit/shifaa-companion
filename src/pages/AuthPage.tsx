@@ -52,7 +52,7 @@ const step1Schema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
   confirmPassword: z.string(),
-  role: z.enum(['patient', 'doctor', 'pharmacist', 'hospital', 'laboratory', 'admin']),
+  role: z.enum(['patient', 'doctor', 'pharmacist', 'hospital', 'laboratory', 'dental', 'cosmetic', 'admin']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'كلمة المرور غير متطابقة',
   path: ['confirmPassword'],
