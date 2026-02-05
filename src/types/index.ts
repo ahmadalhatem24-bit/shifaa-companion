@@ -1,5 +1,5 @@
 // User Roles
-export type UserRole = 'patient' | 'doctor' | 'pharmacist' | 'hospital' | 'laboratory' | 'admin';
+export type UserRole = 'patient' | 'doctor' | 'pharmacist' | 'hospital' | 'laboratory' | 'dental' | 'cosmetic' | 'admin';
 
 // Syrian Governorates
 export const SYRIAN_GOVERNORATES = [

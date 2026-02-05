@@ -17,7 +17,9 @@ import {
   Shield,
   Calendar,
   MapPin,
-  FileText
+  FileText,
+  Smile,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +43,8 @@ const roles: { value: UserRole; label: string; icon: React.ElementType; descript
   { value: 'pharmacist', label: 'صيدلي', icon: Pill, description: 'إدارة الصيدلية' },
   { value: 'hospital', label: 'مستشفى', icon: Building2, description: 'إدارة المستشفى' },
   { value: 'laboratory', label: 'مختبر', icon: FlaskConical, description: 'إدارة المختبر' },
+  { value: 'dental', label: 'عيادة أسنان', icon: Smile, description: 'إدارة عيادة الأسنان' },
+  { value: 'cosmetic', label: 'مركز تجميل', icon: Sparkles, description: 'إدارة مركز التجميل' },
 ];
 
 const step1Schema = z.object({
@@ -48,7 +52,7 @@ const step1Schema = z.object({
   email: z.string().email('البريد الإلكتروني غير صالح'),
   password: z.string().min(6, 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'),
   confirmPassword: z.string(),
-  role: z.enum(['patient', 'doctor', 'pharmacist', 'hospital', 'laboratory', 'admin']),
+  role: z.enum(['patient', 'doctor', 'pharmacist', 'hospital', 'laboratory', 'dental', 'cosmetic', 'admin']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: 'كلمة المرور غير متطابقة',
   path: ['confirmPassword'],
@@ -98,7 +102,7 @@ export default function AuthPage() {
   });
 
   const selectedRole = form.watch('role');
-  const isProvider = ['doctor', 'pharmacist', 'hospital', 'laboratory'].includes(selectedRole);
+  const isProvider = ['doctor', 'pharmacist', 'hospital', 'laboratory', 'dental', 'cosmetic'].includes(selectedRole);
 
   const handleLogin = async (data: any) => {
     setIsLoading(true);
@@ -161,6 +165,8 @@ export default function AuthPage() {
       pharmacist: 'صيدلي',
       hospital: 'مشفى',
       laboratory: 'مختبر',
+      dental: 'عيادة أسنان',
+      cosmetic: 'مركز تجميل',
       admin: 'مدير',
     };
     toast.success(`تم الدخول كـ ${roleLabels[role]} (عرض تجريبي)`);

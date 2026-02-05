@@ -417,7 +417,13 @@ export type Database = {
     }
     Enums: {
       appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
-      provider_type: "doctor" | "pharmacist" | "hospital" | "laboratory"
+      provider_type:
+        | "doctor"
+        | "pharmacist"
+        | "hospital"
+        | "laboratory"
+        | "dental"
+        | "cosmetic"
       user_role:
         | "patient"
         | "doctor"
@@ -425,6 +431,8 @@ export type Database = {
         | "hospital"
         | "laboratory"
         | "admin"
+        | "dental"
+        | "cosmetic"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -553,7 +561,14 @@ export const Constants = {
   public: {
     Enums: {
       appointment_status: ["pending", "confirmed", "completed", "cancelled"],
-      provider_type: ["doctor", "pharmacist", "hospital", "laboratory"],
+      provider_type: [
+        "doctor",
+        "pharmacist",
+        "hospital",
+        "laboratory",
+        "dental",
+        "cosmetic",
+      ],
       user_role: [
         "patient",
         "doctor",
@@ -561,6 +576,8 @@ export const Constants = {
         "hospital",
         "laboratory",
         "admin",
+        "dental",
+        "cosmetic",
       ],
     },
   },

@@ -3,7 +3,7 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
-type UserRole = 'patient' | 'doctor' | 'pharmacist' | 'hospital' | 'laboratory' | 'admin';
+type UserRole = 'patient' | 'doctor' | 'pharmacist' | 'hospital' | 'laboratory' | 'dental' | 'cosmetic' | 'admin';
 
 interface AuthContextType {
   user: User | null;
@@ -51,6 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return '/provider/laboratory';
       case 'hospital':
         return '/provider/hospital';
+      case 'dental':
+        return '/provider/dental';
+      case 'cosmetic':
+        return '/provider/cosmetic';
       case 'admin':
         return '/admin';
       default:
@@ -181,8 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // If provider, create provider profile
-      if (['doctor', 'pharmacist', 'hospital', 'laboratory'].includes(data.role)) {
-        const providerType = data.role as 'doctor' | 'pharmacist' | 'hospital' | 'laboratory';
+      if (['doctor', 'pharmacist', 'hospital', 'laboratory', 'dental', 'cosmetic'].includes(data.role)) {
+        const providerType = data.role as 'doctor' | 'pharmacist' | 'hospital' | 'laboratory' | 'dental' | 'cosmetic';
         const { error: providerError } = await supabase
           .from('providers')
           .insert({
