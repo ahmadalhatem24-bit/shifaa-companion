@@ -102,10 +102,21 @@ export default function AuthPage() {
   const handleLogin = async (data: any) => {
     setIsLoading(true);
     try {
-      const success = await login(data.email, data.password);
-      if (success) {
+      const result = await login(data.email, data.password);
+      if (result.success) {
         toast.success('تم تسجيل الدخول بنجاح');
-        navigate('/');
+        // Fetch user role and redirect
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+          .single();
+        
+        const role = roleData?.role || 'patient';
+        const redirectPath = redirectBasedOnRole(role as any);
+        navigate(redirectPath);
+      } else {
+        toast.error(result.error || 'حدث خطأ في تسجيل الدخول');
       }
     } catch (error) {
       toast.error('حدث خطأ في تسجيل الدخول');
