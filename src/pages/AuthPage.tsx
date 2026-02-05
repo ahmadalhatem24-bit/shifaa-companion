@@ -74,9 +74,6 @@ export default function AuthPage() {
   const [isLoading, setIsLoading] = useState(false);
   const { login, signup, setDemoUser, redirectBasedOnRole } = useAuth();
   const navigate = useNavigate();
-  
-  // Import supabase for role check after login
-  import { supabase } from '@/integrations/supabase/client';
 
   const form = useForm({
     resolver: zodResolver(step1Schema),
