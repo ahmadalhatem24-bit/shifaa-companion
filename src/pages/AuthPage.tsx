@@ -165,6 +165,8 @@ export default function AuthPage() {
       pharmacist: 'صيدلي',
       hospital: 'مشفى',
       laboratory: 'مختبر',
+      dental: 'عيادة أسنان',
+      cosmetic: 'مركز تجميل',
       admin: 'مدير',
     };
     toast.success(`تم الدخول كـ ${roleLabels[role]} (عرض تجريبي)`);
