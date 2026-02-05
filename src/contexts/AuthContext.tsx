@@ -185,8 +185,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       // If provider, create provider profile
-      if (['doctor', 'pharmacist', 'hospital', 'laboratory'].includes(data.role)) {
-        const providerType = data.role as 'doctor' | 'pharmacist' | 'hospital' | 'laboratory';
+      if (['doctor', 'pharmacist', 'hospital', 'laboratory', 'dental', 'cosmetic'].includes(data.role)) {
+        const providerType = data.role as 'doctor' | 'pharmacist' | 'hospital' | 'laboratory' | 'dental' | 'cosmetic';
         const { error: providerError } = await supabase
           .from('providers')
           .insert({
