@@ -19,6 +19,11 @@ import PatientAppointmentsPage from "./pages/PatientAppointmentsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MedicalRecordPage from "./pages/MedicalRecordPage";
 import ProviderDashboard from "./pages/provider/ProviderDashboard";
+import PharmacyDashboard from "./pages/provider/PharmacyDashboard";
+import LaboratoryDashboard from "./pages/provider/LaboratoryDashboard";
+import HospitalDashboard from "./pages/provider/HospitalDashboard";
+import DentalDashboard from "./pages/provider/DentalDashboard";
+import CosmeticDashboard from "./pages/provider/CosmeticDashboard";
 import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage";
 import NotFound from "./pages/NotFound";
 
@@ -48,6 +53,11 @@ const App = () => (
             
             {/* Provider Routes */}
             <Route path="/provider" element={<ProviderDashboard />} />
+            <Route path="/provider/pharmacy" element={<PharmacyDashboard />} />
+            <Route path="/provider/laboratory" element={<LaboratoryDashboard />} />
+            <Route path="/provider/hospital" element={<HospitalDashboard />} />
+            <Route path="/provider/dental" element={<DentalDashboard />} />
+            <Route path="/provider/cosmetic" element={<CosmeticDashboard />} />
             <Route path="/provider/appointments" element={<ProviderAppointmentsPage />} />
             
             {/* Catch-all */}
