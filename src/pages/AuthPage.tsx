@@ -33,6 +33,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { UserRole, SYRIAN_GOVERNORATES, MEDICAL_SPECIALIZATIONS } from '@/types';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
 const roles: { value: UserRole; label: string; icon: React.ElementType; description: string }[] = [
   { value: 'patient', label: 'مريض', icon: UserRound, description: 'احجز مواعيد وتابع صحتك' },
