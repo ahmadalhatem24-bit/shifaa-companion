@@ -110,6 +110,9 @@ export function PatientNavbar() {
                   <Link to="/profile">الملف الشخصي</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
+                  <Link to="/medical-record">الملف الطبي</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link to="/appointments">مواعيدي</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={logout} className="text-destructive">
