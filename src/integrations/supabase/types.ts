@@ -14,16 +14,417 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      allergies: {
+        Row: {
+          allergy_name: string
+          created_at: string
+          id: string
+          notes: string | null
+          severity: string | null
+          user_id: string
+        }
+        Insert: {
+          allergy_name: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          severity?: string | null
+          user_id: string
+        }
+        Update: {
+          allergy_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          severity?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      appointments: {
+        Row: {
+          appointment_date: string
+          appointment_time: string
+          cancel_reason: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          provider_id: string
+          status: Database["public"]["Enums"]["appointment_status"]
+          updated_at: string
+        }
+        Insert: {
+          appointment_date: string
+          appointment_time: string
+          cancel_reason?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          provider_id: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+        }
+        Update: {
+          appointment_date?: string
+          appointment_time?: string
+          cancel_reason?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          provider_id?: string
+          status?: Database["public"]["Enums"]["appointment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chronic_diseases: {
+        Row: {
+          created_at: string
+          diagnosis_date: string | null
+          disease_name: string
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diagnosis_date?: string | null
+          disease_name: string
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diagnosis_date?: string | null
+          disease_name?: string
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      family_history: {
+        Row: {
+          condition_name: string
+          created_at: string
+          id: string
+          notes: string | null
+          relation: string | null
+          user_id: string
+        }
+        Insert: {
+          condition_name: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          relation?: string | null
+          user_id: string
+        }
+        Update: {
+          condition_name?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          relation?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medical_documents: {
+        Row: {
+          created_at: string
+          description: string | null
+          doctor_name: string | null
+          document_date: string | null
+          document_type: string
+          file_url: string
+          id: string
+          title: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          doctor_name?: string | null
+          document_date?: string | null
+          document_type: string
+          file_url: string
+          id?: string
+          title: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          doctor_name?: string | null
+          document_date?: string | null
+          document_type?: string
+          file_url?: string
+          id?: string
+          title?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      medications: {
+        Row: {
+          created_at: string
+          dosage: string | null
+          end_date: string | null
+          frequency: string | null
+          id: string
+          is_active: boolean | null
+          medication_name: string
+          notes: string | null
+          start_date: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          dosage?: string | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean | null
+          medication_name: string
+          notes?: string | null
+          start_date?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          dosage?: string | null
+          end_date?: string | null
+          frequency?: string | null
+          id?: string
+          is_active?: boolean | null
+          medication_name?: string
+          notes?: string | null
+          start_date?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          blood_type: string | null
+          city: string | null
+          created_at: string
+          date_of_birth: string | null
+          emergency_contact_name: string | null
+          emergency_contact_phone: string | null
+          emergency_contact_relation: string | null
+          full_name: string
+          gender: string | null
+          governorate: string | null
+          height: number | null
+          id: string
+          marital_status: string | null
+          phone: string | null
+          street: string | null
+          updated_at: string
+          user_id: string
+          weight: number | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          blood_type?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          full_name?: string
+          gender?: string | null
+          governorate?: string | null
+          height?: number | null
+          id?: string
+          marital_status?: string | null
+          phone?: string | null
+          street?: string | null
+          updated_at?: string
+          user_id: string
+          weight?: number | null
+        }
+        Update: {
+          avatar_url?: string | null
+          blood_type?: string | null
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emergency_contact_name?: string | null
+          emergency_contact_phone?: string | null
+          emergency_contact_relation?: string | null
+          full_name?: string
+          gender?: string | null
+          governorate?: string | null
+          height?: number | null
+          id?: string
+          marital_status?: string | null
+          phone?: string | null
+          street?: string | null
+          updated_at?: string
+          user_id?: string
+          weight?: number | null
+        }
+        Relationships: []
+      }
+      providers: {
+        Row: {
+          address: string | null
+          avatar_url: string | null
+          bio: string | null
+          consultation_fee: number | null
+          created_at: string
+          email: string | null
+          governorate: string | null
+          id: string
+          is_verified: boolean | null
+          license_number: string | null
+          name: string
+          phone: string | null
+          provider_type: Database["public"]["Enums"]["provider_type"]
+          rating: number | null
+          review_count: number | null
+          specialization: string | null
+          updated_at: string
+          user_id: string | null
+          working_hours: Json | null
+        }
+        Insert: {
+          address?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          email?: string | null
+          governorate?: string | null
+          id?: string
+          is_verified?: boolean | null
+          license_number?: string | null
+          name: string
+          phone?: string | null
+          provider_type: Database["public"]["Enums"]["provider_type"]
+          rating?: number | null
+          review_count?: number | null
+          specialization?: string | null
+          updated_at?: string
+          user_id?: string | null
+          working_hours?: Json | null
+        }
+        Update: {
+          address?: string | null
+          avatar_url?: string | null
+          bio?: string | null
+          consultation_fee?: number | null
+          created_at?: string
+          email?: string | null
+          governorate?: string | null
+          id?: string
+          is_verified?: boolean | null
+          license_number?: string | null
+          name?: string
+          phone?: string | null
+          provider_type?: Database["public"]["Enums"]["provider_type"]
+          rating?: number | null
+          review_count?: number | null
+          specialization?: string | null
+          updated_at?: string
+          user_id?: string | null
+          working_hours?: Json | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          patient_id: string
+          provider_id: string
+          rating: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          patient_id: string
+          provider_id: string
+          rating: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          patient_id?: string
+          provider_id?: string
+          rating?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["user_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_role: {
+        Args: { _user_id: string }
+        Returns: Database["public"]["Enums"]["user_role"]
+      }
     }
     Enums: {
-      [_ in never]: never
+      appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
+      provider_type: "doctor" | "pharmacist" | "hospital" | "laboratory"
+      user_role:
+        | "patient"
+        | "doctor"
+        | "pharmacist"
+        | "hospital"
+        | "laboratory"
+        | "admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +551,17 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      appointment_status: ["pending", "confirmed", "completed", "cancelled"],
+      provider_type: ["doctor", "pharmacist", "hospital", "laboratory"],
+      user_role: [
+        "patient",
+        "doctor",
+        "pharmacist",
+        "hospital",
+        "laboratory",
+        "admin",
+      ],
+    },
   },
 } as const
