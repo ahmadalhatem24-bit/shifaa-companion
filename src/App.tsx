@@ -9,6 +9,11 @@ import { AuthProvider } from "./contexts/AuthContext";
 import HomePage from "./pages/HomePage";
 import AuthPage from "./pages/AuthPage";
 import DoctorsPage from "./pages/DoctorsPage";
+import DentalPage from "./pages/DentalPage";
+import PharmaciesPage from "./pages/PharmaciesPage";
+import HospitalsPage from "./pages/HospitalsPage";
+import LabsPage from "./pages/LabsPage";
+import CosmeticPage from "./pages/CosmeticPage";
 import ProviderDashboard from "./pages/provider/ProviderDashboard";
 import AppointmentsPage from "./pages/provider/AppointmentsPage";
 import NotFound from "./pages/NotFound";
@@ -27,6 +32,11 @@ const App = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/doctors" element={<DoctorsPage />} />
+            <Route path="/dental" element={<DentalPage />} />
+            <Route path="/pharmacies" element={<PharmaciesPage />} />
+            <Route path="/hospitals" element={<HospitalsPage />} />
+            <Route path="/labs" element={<LabsPage />} />
+            <Route path="/cosmetic" element={<CosmeticPage />} />
             
             {/* Provider Routes */}
             <Route path="/provider" element={<ProviderDashboard />} />
