@@ -154,14 +154,16 @@ export default function AuthPage() {
 
   const handleDemoLogin = (role: UserRole) => {
     setDemoUser(role);
-    toast.success(`تم الدخول كـ ${role === 'patient' ? 'مريض' : role === 'doctor' ? 'طبيب' : 'مدير'} (عرض تجريبي)`);
-    if (role === 'patient') {
-      navigate('/');
-    } else if (role === 'admin') {
-      navigate('/admin');
-    } else {
-      navigate('/provider');
-    }
+    const roleLabels: Record<UserRole, string> = {
+      patient: 'مريض',
+      doctor: 'طبيب',
+      pharmacist: 'صيدلي',
+      hospital: 'مشفى',
+      laboratory: 'مختبر',
+      admin: 'مدير',
+    };
+    toast.success(`تم الدخول كـ ${roleLabels[role]} (عرض تجريبي)`);
+    navigate(redirectBasedOnRole(role));
   };
 
   return (
