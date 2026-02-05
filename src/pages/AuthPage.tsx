@@ -71,8 +71,11 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(!isSignup);
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const { login, signup, setDemoUser } = useAuth();
+  const { login, signup, setDemoUser, redirectBasedOnRole } = useAuth();
   const navigate = useNavigate();
+  
+  // Import supabase for role check after login
+  import { supabase } from '@/integrations/supabase/client';
 
   const form = useForm({
     resolver: zodResolver(step1Schema),
