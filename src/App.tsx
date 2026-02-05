@@ -17,6 +17,7 @@ import LabsPage from "./pages/LabsPage";
 import CosmeticPage from "./pages/CosmeticPage";
 import PatientAppointmentsPage from "./pages/PatientAppointmentsPage";
 import ProfilePage from "./pages/ProfilePage";
+import MedicalRecordPage from "./pages/MedicalRecordPage";
 import ProviderDashboard from "./pages/provider/ProviderDashboard";
 import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage";
 import NotFound from "./pages/NotFound";
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/cosmetic" element={<CosmeticPage />} />
             <Route path="/appointments" element={<PatientAppointmentsPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/medical-record" element={<MedicalRecordPage />} />
             
             {/* Provider Routes */}
             <Route path="/provider" element={<ProviderDashboard />} />
