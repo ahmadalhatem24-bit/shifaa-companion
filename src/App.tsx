@@ -53,6 +53,11 @@ const App = () => (
             
             {/* Provider Routes */}
             <Route path="/provider" element={<ProviderDashboard />} />
+            <Route path="/provider/pharmacy" element={<PharmacyDashboard />} />
+            <Route path="/provider/laboratory" element={<LaboratoryDashboard />} />
+            <Route path="/provider/hospital" element={<HospitalDashboard />} />
+            <Route path="/provider/dental" element={<DentalDashboard />} />
+            <Route path="/provider/cosmetic" element={<CosmeticDashboard />} />
             <Route path="/provider/appointments" element={<ProviderAppointmentsPage />} />
             
             {/* Catch-all */}
