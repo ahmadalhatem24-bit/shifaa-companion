@@ -1,0 +1,166 @@
+import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { 
+  Search, 
+  MapPin, 
+  Star,
+  Filter,
+  ChevronLeft
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { PatientNavbar } from '@/components/layout/PatientNavbar';
+import { mockDoctors } from '@/data/mockData';
+import { SYRIAN_GOVERNORATES, MEDICAL_SPECIALIZATIONS } from '@/types';
+import { useState } from 'react';
+
+export default function DoctorsPage() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedGov, setSelectedGov] = useState<string>('');
+  const [selectedSpec, setSelectedSpec] = useState<string>('');
+
+  const filteredDoctors = mockDoctors.filter((doctor) => {
+    const matchesSearch = doctor.name.includes(searchQuery) || 
+                          doctor.specialization.includes(searchQuery);
+    const matchesGov = !selectedGov || doctor.governorate === selectedGov;
+    const matchesSpec = !selectedSpec || doctor.specialization === selectedSpec;
+    return matchesSearch && matchesGov && matchesSpec;
+  });
+
+  return (
+    <div className="min-h-screen bg-background">
+      <PatientNavbar />
+
+      {/* Header */}
+      <section className="bg-gradient-to-bl from-primary/5 to-background py-12">
+        <div className="container">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <h1 className="text-3xl lg:text-4xl font-bold mb-4">الأطباء</h1>
+            <p className="text-muted-foreground mb-8">
+              ابحث عن أفضل الأطباء واحجز موعدك بسهولة
+            </p>
+
+            {/* Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 p-4 bg-card rounded-xl shadow-lg border border-border/50">
+              <div className="flex-1 relative">
+                <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input 
+                  placeholder="ابحث بالاسم أو التخصص..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10"
+                />
+              </div>
+              <Select value={selectedSpec} onValueChange={setSelectedSpec}>
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="التخصص" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">جميع التخصصات</SelectItem>
+                  {MEDICAL_SPECIALIZATIONS.map((spec) => (
+                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedGov} onValueChange={setSelectedGov}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="المحافظة" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">جميع المحافظات</SelectItem>
+                  {SYRIAN_GOVERNORATES.map((gov) => (
+                    <SelectItem key={gov} value={gov}>{gov}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Results */}
+      <section className="py-12">
+        <div className="container">
+          <p className="text-muted-foreground mb-6">
+            تم العثور على <span className="font-semibold text-foreground">{filteredDoctors.length}</span> طبيب
+          </p>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredDoctors.map((doctor, i) => (
+              <motion.div
+                key={doctor.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="medical-card p-6"
+              >
+                <div className="flex items-start gap-4 mb-4">
+                  <img 
+                    src={doctor.avatar} 
+                    alt={doctor.name}
+                    className="h-16 w-16 rounded-xl object-cover"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">{doctor.name}</h3>
+                      {doctor.isVerified && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                          معتمد
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Star className="h-4 w-4 fill-warning text-warning" />
+                      <span className="text-sm font-medium">{doctor.rating}</span>
+                      <span className="text-xs text-muted-foreground">({doctor.reviewCount} تقييم)</span>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                  {doctor.bio}
+                </p>
+
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                  <MapPin className="h-4 w-4 flex-shrink-0" />
+                  <span className="truncate">{doctor.address}، {doctor.governorate}</span>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-border">
+                  <div>
+                    <span className="text-xs text-muted-foreground">الكشفية</span>
+                    <p className="font-semibold text-primary">{doctor.consultationFee?.toLocaleString()} ل.س</p>
+                  </div>
+                  <Button variant="hero" size="sm" asChild>
+                    <Link to={`/doctors/${doctor.id}`}>
+                      احجز الآن
+                      <ChevronLeft className="h-4 w-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+
+          {filteredDoctors.length === 0 && (
+            <div className="text-center py-20">
+              <p className="text-muted-foreground text-lg">لم يتم العثور على نتائج</p>
+              <p className="text-sm text-muted-foreground mt-2">جرب تغيير معايير البحث</p>
+            </div>
+          )}
+        </div>
+      </section>
+    </div>
+  );
+}
