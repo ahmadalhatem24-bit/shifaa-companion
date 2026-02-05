@@ -51,6 +51,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return '/provider/laboratory';
       case 'hospital':
         return '/provider/hospital';
+      case 'dental':
+        return '/provider/dental';
+      case 'cosmetic':
+        return '/provider/cosmetic';
       case 'admin':
         return '/admin';
       default:
