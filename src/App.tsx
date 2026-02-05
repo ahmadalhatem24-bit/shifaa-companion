@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 
 // Pages
 import HomePage from "./pages/HomePage";
@@ -47,19 +48,109 @@ const App = () => (
             <Route path="/hospitals" element={<HospitalsPage />} />
             <Route path="/labs" element={<LabsPage />} />
             <Route path="/cosmetic" element={<CosmeticPage />} />
-            <Route path="/appointments" element={<PatientAppointmentsPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/medical-record" element={<MedicalRecordPage />} />
-            
-            {/* Provider Routes */}
-            <Route path="/provider" element={<ProviderDashboard />} />
-            <Route path="/provider/pharmacy" element={<PharmacyDashboard />} />
-            <Route path="/provider/laboratory" element={<LaboratoryDashboard />} />
-            <Route path="/provider/hospital" element={<HospitalDashboard />} />
-            <Route path="/provider/dental" element={<DentalDashboard />} />
-            <Route path="/provider/cosmetic" element={<CosmeticDashboard />} />
-            <Route path="/provider/appointments" element={<ProviderAppointmentsPage />} />
-            
+
+            {/* Protected Patient Routes */}
+            <Route
+              path="/appointments"
+              element={
+                <ProtectedRoute allowedRoles={["patient"]}>
+                  <PatientAppointmentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/medical-record"
+              element={
+                <ProtectedRoute>
+                  <MedicalRecordPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Protected Provider Routes */}
+            <Route
+              path="/provider"
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    "doctor",
+                    "pharmacist",
+                    "hospital",
+                    "laboratory",
+                    "dental",
+                    "cosmetic",
+                  ]}
+                >
+                  <ProviderDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/pharmacy"
+              element={
+                <ProtectedRoute allowedRoles={["pharmacist"]}>
+                  <PharmacyDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/laboratory"
+              element={
+                <ProtectedRoute allowedRoles={["laboratory"]}>
+                  <LaboratoryDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/hospital"
+              element={
+                <ProtectedRoute allowedRoles={["hospital"]}>
+                  <HospitalDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/dental"
+              element={
+                <ProtectedRoute allowedRoles={["dental"]}>
+                  <DentalDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/cosmetic"
+              element={
+                <ProtectedRoute allowedRoles={["cosmetic"]}>
+                  <CosmeticDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/appointments"
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    "doctor",
+                    "pharmacist",
+                    "hospital",
+                    "laboratory",
+                    "dental",
+                    "cosmetic",
+                  ]}
+                >
+                  <ProviderAppointmentsPage />
+                </ProtectedRoute>
+              }
+            />
+
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>

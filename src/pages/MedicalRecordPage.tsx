@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { 
-  FileText, 
-  Plus, 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  FileText,
+  Plus,
   Loader2,
   Heart,
   Users,
@@ -13,21 +12,21 @@ import {
   Trash2,
   Eye,
   Calendar,
-  Download
-} from 'lucide-react';
-import { PatientNavbar } from '@/components/layout/PatientNavbar';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+  Download,
+} from "lucide-react";
+import { PatientNavbar } from "@/components/layout/PatientNavbar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Import sub-components
-import { MedicalDocuments } from '@/components/medical-record/MedicalDocuments';
-import { ChronicDiseases } from '@/components/medical-record/ChronicDiseases';
-import { FamilyHistory } from '@/components/medical-record/FamilyHistory';
-import { Allergies } from '@/components/medical-record/Allergies';
-import { Medications } from '@/components/medical-record/Medications';
+import { MedicalDocuments } from "@/components/medical-record/MedicalDocuments";
+import { ChronicDiseases } from "@/components/medical-record/ChronicDiseases";
+import { FamilyHistory } from "@/components/medical-record/FamilyHistory";
+import { Allergies } from "@/components/medical-record/Allergies";
+import { Medications } from "@/components/medical-record/Medications";
 
 export default function MedicalRecordPage() {
   const navigate = useNavigate();
@@ -35,18 +34,17 @@ export default function MedicalRecordPage() {
   const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    checkAuth();
+    fetchUserId();
   }, []);
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      navigate('/login');
-      return;
-    }
+  const fetchUserId = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    setUserId(session.user.id);
+    if (session) {
+      setUserId(session.user.id);
+    }
     setLoading(false);
   };
 
@@ -83,40 +81,40 @@ export default function MedicalRecordPage() {
           {/* Tabs */}
           <Tabs defaultValue="documents" className="space-y-6">
             <TabsList className="grid w-full grid-cols-2 lg:grid-cols-5 h-auto gap-2 bg-transparent p-0">
-              <TabsTrigger 
-                value="documents" 
+              <TabsTrigger
+                value="documents"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2 py-3"
               >
                 <FileText className="h-4 w-4" />
                 <span className="hidden sm:inline">الوثائق والتقارير</span>
                 <span className="sm:hidden">الوثائق</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="chronic" 
+              <TabsTrigger
+                value="chronic"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2 py-3"
               >
                 <Heart className="h-4 w-4" />
                 <span className="hidden sm:inline">الأمراض المزمنة</span>
                 <span className="sm:hidden">مزمنة</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="family" 
+              <TabsTrigger
+                value="family"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2 py-3"
               >
                 <Users className="h-4 w-4" />
                 <span className="hidden sm:inline">التاريخ العائلي</span>
                 <span className="sm:hidden">عائلي</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="allergies" 
+              <TabsTrigger
+                value="allergies"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2 py-3"
               >
                 <AlertTriangle className="h-4 w-4" />
                 <span className="hidden sm:inline">الحساسية</span>
                 <span className="sm:hidden">حساسية</span>
               </TabsTrigger>
-              <TabsTrigger 
-                value="medications" 
+              <TabsTrigger
+                value="medications"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground flex items-center gap-2 py-3"
               >
                 <Pill className="h-4 w-4" />

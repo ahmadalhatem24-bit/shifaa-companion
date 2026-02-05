@@ -1,12 +1,11 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { 
-  User, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Calendar, 
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import {
+  User,
+  Phone,
+  Mail,
+  MapPin,
+  Calendar,
   Heart,
   Droplet,
   Ruler,
@@ -16,26 +15,26 @@ import {
   Save,
   X,
   Camera,
-  Loader2
-} from 'lucide-react';
-import { PatientNavbar } from '@/components/layout/PatientNavbar';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+  Loader2,
+} from "lucide-react";
+import { PatientNavbar } from "@/components/layout/PatientNavbar";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { SYRIAN_GOVERNORATES } from '@/types';
-import { Progress } from '@/components/ui/progress';
+} from "@/components/ui/select";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { SYRIAN_GOVERNORATES } from "@/types";
+import { Progress } from "@/components/ui/progress";
 
 interface Profile {
   id: string;
@@ -57,9 +56,9 @@ interface Profile {
   emergency_contact_relation: string | null;
 }
 
-const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
-const maritalStatuses = ['أعزب', 'متزوج', 'مطلق', 'أرمل'];
-const relations = ['أب', 'أم', 'زوج/زوجة', 'ابن/ابنة', 'أخ/أخت', 'صديق', 'آخر'];
+const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const maritalStatuses = ["أعزب", "متزوج", "مطلق", "أرمل"];
+const relations = ["أب", "أم", "زوج/زوجة", "ابن/ابنة", "أخ/أخت", "صديق", "آخر"];
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -67,34 +66,33 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [userEmail, setUserEmail] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>("");
   const [formData, setFormData] = useState<Partial<Profile>>({});
 
   useEffect(() => {
-    checkAuthAndFetchProfile();
+    fetchProfileData();
   }, []);
 
-  const checkAuthAndFetchProfile = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      navigate('/login');
-      return;
-    }
+  const fetchProfileData = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
 
-    setUserEmail(session.user.email || '');
-    await fetchProfile(session.user.id);
+    if (session) {
+      setUserEmail(session.user.email || "");
+      await fetchProfile(session.user.id);
+    }
   };
 
   const fetchProfile = async (userId: string) => {
     try {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error && error.code !== "PGRST116") {
         throw error;
       }
 
@@ -103,8 +101,8 @@ export default function ProfilePage() {
         setFormData(data);
       }
     } catch (error: any) {
-      console.error('Error fetching profile:', error);
-      toast.error('خطأ في جلب البيانات');
+      console.error("Error fetching profile:", error);
+      toast.error("خطأ في جلب البيانات");
     } finally {
       setLoading(false);
     }
@@ -112,11 +110,11 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!profile) return;
-    
+
     setSaving(true);
     try {
       const { error } = await supabase
-        .from('profiles')
+        .from("profiles")
         .update({
           full_name: formData.full_name,
           phone: formData.phone,
@@ -134,16 +132,16 @@ export default function ProfilePage() {
           emergency_contact_relation: formData.emergency_contact_relation,
           updated_at: new Date().toISOString(),
         })
-        .eq('id', profile.id);
+        .eq("id", profile.id);
 
       if (error) throw error;
 
       setProfile({ ...profile, ...formData } as Profile);
       setIsEditing(false);
-      toast.success('تم حفظ التغييرات بنجاح');
+      toast.success("تم حفظ التغييرات بنجاح");
     } catch (error: any) {
-      console.error('Error saving profile:', error);
-      toast.error('خطأ في حفظ البيانات');
+      console.error("Error saving profile:", error);
+      toast.error("خطأ في حفظ البيانات");
     } finally {
       setSaving(false);
     }
@@ -168,15 +166,15 @@ export default function ProfilePage() {
       profile.emergency_contact_name,
       profile.emergency_contact_phone,
     ];
-    const filledFields = fields.filter(f => f !== null && f !== '').length;
+    const filledFields = fields.filter((f) => f !== null && f !== "").length;
     return Math.round((filledFields / fields.length) * 100);
   };
 
   const getInitials = (name: string) => {
     return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
       .slice(0, 2);
   };
 
@@ -209,25 +207,35 @@ export default function ProfilePage() {
               <div className="flex flex-col md:flex-row items-start md:items-end gap-4 -mt-16">
                 <div className="relative">
                   <Avatar className="h-32 w-32 border-4 border-background shadow-xl">
-                    <AvatarImage src={profile?.avatar_url || ''} />
+                    <AvatarImage src={profile?.avatar_url || ""} />
                     <AvatarFallback className="text-3xl bg-primary text-primary-foreground">
-                      {profile?.full_name ? getInitials(profile.full_name) : <User />}
+                      {profile?.full_name ? (
+                        getInitials(profile.full_name)
+                      ) : (
+                        <User />
+                      )}
                     </AvatarFallback>
                   </Avatar>
                   <button className="absolute bottom-2 left-2 p-2 bg-primary text-primary-foreground rounded-full shadow-lg hover:bg-primary/90 transition-colors">
                     <Camera className="h-4 w-4" />
                   </button>
                 </div>
-                
+
                 <div className="flex-1">
-                  <h1 className="text-2xl font-bold">{profile?.full_name || 'مستخدم جديد'}</h1>
+                  <h1 className="text-2xl font-bold">
+                    {profile?.full_name || "مستخدم جديد"}
+                  </h1>
                   <p className="text-muted-foreground">{userEmail}</p>
                 </div>
 
                 <div className="flex gap-2">
                   {isEditing ? (
                     <>
-                      <Button variant="outline" onClick={handleCancel} disabled={saving}>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancel}
+                        disabled={saving}
+                      >
                         <X className="h-4 w-4 ml-2" />
                         إلغاء
                       </Button>
@@ -252,8 +260,12 @@ export default function ProfilePage() {
               {/* Profile Completion */}
               <div className="mt-6 p-4 bg-secondary/30 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">اكتمال الملف الشخصي</span>
-                  <span className="text-sm text-muted-foreground">{completion}%</span>
+                  <span className="text-sm font-medium">
+                    اكتمال الملف الشخصي
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {completion}%
+                  </span>
                 </div>
                 <Progress value={completion} className="h-2" />
                 {completion < 100 && (
@@ -287,12 +299,19 @@ export default function ProfilePage() {
                     <Label>الاسم الكامل</Label>
                     {isEditing ? (
                       <Input
-                        value={formData.full_name || ''}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                        value={formData.full_name || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            full_name: e.target.value,
+                          })
+                        }
                         placeholder="أدخل اسمك الكامل"
                       />
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.full_name || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.full_name || "-"}
+                      </p>
                     )}
                   </div>
 
@@ -301,15 +320,17 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="tel"
-                        value={formData.phone || ''}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        value={formData.phone || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, phone: e.target.value })
+                        }
                         placeholder="09xxxxxxxx"
                         dir="ltr"
                       />
                     ) : (
                       <p className="p-3 bg-secondary/30 rounded-lg flex items-center gap-2">
                         <Phone className="h-4 w-4 text-muted-foreground" />
-                        {profile?.phone || '-'}
+                        {profile?.phone || "-"}
                       </p>
                     )}
                   </div>
@@ -318,8 +339,10 @@ export default function ProfilePage() {
                     <Label>الجنس</Label>
                     {isEditing ? (
                       <Select
-                        value={formData.gender || ''}
-                        onValueChange={(value) => setFormData({ ...formData, gender: value })}
+                        value={formData.gender || ""}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, gender: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="اختر الجنس" />
@@ -331,7 +354,11 @@ export default function ProfilePage() {
                       </Select>
                     ) : (
                       <p className="p-3 bg-secondary/30 rounded-lg">
-                        {profile?.gender === 'male' ? 'ذكر' : profile?.gender === 'female' ? 'أنثى' : '-'}
+                        {profile?.gender === "male"
+                          ? "ذكر"
+                          : profile?.gender === "female"
+                            ? "أنثى"
+                            : "-"}
                       </p>
                     )}
                   </div>
@@ -341,13 +368,18 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="date"
-                        value={formData.date_of_birth || ''}
-                        onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                        value={formData.date_of_birth || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            date_of_birth: e.target.value,
+                          })
+                        }
                       />
                     ) : (
                       <p className="p-3 bg-secondary/30 rounded-lg flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
-                        {profile?.date_of_birth || '-'}
+                        {profile?.date_of_birth || "-"}
                       </p>
                     )}
                   </div>
@@ -356,20 +388,26 @@ export default function ProfilePage() {
                     <Label>الحالة الاجتماعية</Label>
                     {isEditing ? (
                       <Select
-                        value={formData.marital_status || ''}
-                        onValueChange={(value) => setFormData({ ...formData, marital_status: value })}
+                        value={formData.marital_status || ""}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, marital_status: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="اختر الحالة" />
                         </SelectTrigger>
                         <SelectContent>
                           {maritalStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>{status}</SelectItem>
+                            <SelectItem key={status} value={status}>
+                              {status}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.marital_status || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.marital_status || "-"}
+                      </p>
                     )}
                   </div>
 
@@ -377,22 +415,26 @@ export default function ProfilePage() {
                     <Label>المحافظة</Label>
                     {isEditing ? (
                       <Select
-                        value={formData.governorate || ''}
-                        onValueChange={(value) => setFormData({ ...formData, governorate: value })}
+                        value={formData.governorate || ""}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, governorate: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="اختر المحافظة" />
                         </SelectTrigger>
                         <SelectContent>
                           {SYRIAN_GOVERNORATES.map((gov) => (
-                            <SelectItem key={gov} value={gov}>{gov}</SelectItem>
+                            <SelectItem key={gov} value={gov}>
+                              {gov}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
                       <p className="p-3 bg-secondary/30 rounded-lg flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
-                        {profile?.governorate || '-'}
+                        {profile?.governorate || "-"}
                       </p>
                     )}
                   </div>
@@ -401,12 +443,16 @@ export default function ProfilePage() {
                     <Label>المدينة</Label>
                     {isEditing ? (
                       <Input
-                        value={formData.city || ''}
-                        onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                        value={formData.city || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, city: e.target.value })
+                        }
                         placeholder="اسم المدينة"
                       />
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.city || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.city || "-"}
+                      </p>
                     )}
                   </div>
 
@@ -414,12 +460,16 @@ export default function ProfilePage() {
                     <Label>العنوان التفصيلي</Label>
                     {isEditing ? (
                       <Input
-                        value={formData.street || ''}
-                        onChange={(e) => setFormData({ ...formData, street: e.target.value })}
+                        value={formData.street || ""}
+                        onChange={(e) =>
+                          setFormData({ ...formData, street: e.target.value })
+                        }
                         placeholder="الشارع، البناء، الطابق"
                       />
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.street || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.street || "-"}
+                      </p>
                     )}
                   </div>
                 </CardContent>
@@ -440,22 +490,28 @@ export default function ProfilePage() {
                     <Label>فصيلة الدم</Label>
                     {isEditing ? (
                       <Select
-                        value={formData.blood_type || ''}
-                        onValueChange={(value) => setFormData({ ...formData, blood_type: value })}
+                        value={formData.blood_type || ""}
+                        onValueChange={(value) =>
+                          setFormData({ ...formData, blood_type: value })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="اختر فصيلة الدم" />
                         </SelectTrigger>
                         <SelectContent>
                           {bloodTypes.map((type) => (
-                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                            <SelectItem key={type} value={type}>
+                              {type}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
                       <div className="p-4 bg-destructive/10 rounded-lg text-center">
                         <Droplet className="h-8 w-8 text-destructive mx-auto mb-2" />
-                        <p className="text-2xl font-bold text-destructive">{profile?.blood_type || '-'}</p>
+                        <p className="text-2xl font-bold text-destructive">
+                          {profile?.blood_type || "-"}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -465,14 +521,22 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="number"
-                        value={formData.height || ''}
-                        onChange={(e) => setFormData({ ...formData, height: Number(e.target.value) })}
+                        value={formData.height || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            height: Number(e.target.value),
+                          })
+                        }
                         placeholder="170"
                       />
                     ) : (
                       <div className="p-4 bg-primary/10 rounded-lg text-center">
                         <Ruler className="h-8 w-8 text-primary mx-auto mb-2" />
-                        <p className="text-2xl font-bold">{profile?.height || '-'} <span className="text-sm font-normal">سم</span></p>
+                        <p className="text-2xl font-bold">
+                          {profile?.height || "-"}{" "}
+                          <span className="text-sm font-normal">سم</span>
+                        </p>
                       </div>
                     )}
                   </div>
@@ -482,14 +546,22 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="number"
-                        value={formData.weight || ''}
-                        onChange={(e) => setFormData({ ...formData, weight: Number(e.target.value) })}
+                        value={formData.weight || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            weight: Number(e.target.value),
+                          })
+                        }
                         placeholder="70"
                       />
                     ) : (
                       <div className="p-4 bg-success/10 rounded-lg text-center">
                         <Weight className="h-8 w-8 text-success mx-auto mb-2" />
-                        <p className="text-2xl font-bold">{profile?.weight || '-'} <span className="text-sm font-normal">كغ</span></p>
+                        <p className="text-2xl font-bold">
+                          {profile?.weight || "-"}{" "}
+                          <span className="text-sm font-normal">كغ</span>
+                        </p>
                       </div>
                     )}
                   </div>
@@ -511,12 +583,19 @@ export default function ProfilePage() {
                     <Label>اسم جهة الاتصال</Label>
                     {isEditing ? (
                       <Input
-                        value={formData.emergency_contact_name || ''}
-                        onChange={(e) => setFormData({ ...formData, emergency_contact_name: e.target.value })}
+                        value={formData.emergency_contact_name || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            emergency_contact_name: e.target.value,
+                          })
+                        }
                         placeholder="اسم الشخص"
                       />
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.emergency_contact_name || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.emergency_contact_name || "-"}
+                      </p>
                     )}
                   </div>
 
@@ -525,13 +604,20 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="tel"
-                        value={formData.emergency_contact_phone || ''}
-                        onChange={(e) => setFormData({ ...formData, emergency_contact_phone: e.target.value })}
+                        value={formData.emergency_contact_phone || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            emergency_contact_phone: e.target.value,
+                          })
+                        }
                         placeholder="09xxxxxxxx"
                         dir="ltr"
                       />
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.emergency_contact_phone || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.emergency_contact_phone || "-"}
+                      </p>
                     )}
                   </div>
 
@@ -539,20 +625,29 @@ export default function ProfilePage() {
                     <Label>صلة القرابة</Label>
                     {isEditing ? (
                       <Select
-                        value={formData.emergency_contact_relation || ''}
-                        onValueChange={(value) => setFormData({ ...formData, emergency_contact_relation: value })}
+                        value={formData.emergency_contact_relation || ""}
+                        onValueChange={(value) =>
+                          setFormData({
+                            ...formData,
+                            emergency_contact_relation: value,
+                          })
+                        }
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="اختر صلة القرابة" />
                         </SelectTrigger>
                         <SelectContent>
                           {relations.map((rel) => (
-                            <SelectItem key={rel} value={rel}>{rel}</SelectItem>
+                            <SelectItem key={rel} value={rel}>
+                              {rel}
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
-                      <p className="p-3 bg-secondary/30 rounded-lg">{profile?.emergency_contact_relation || '-'}</p>
+                      <p className="p-3 bg-secondary/30 rounded-lg">
+                        {profile?.emergency_contact_relation || "-"}
+                      </p>
                     )}
                   </div>
                 </CardContent>
