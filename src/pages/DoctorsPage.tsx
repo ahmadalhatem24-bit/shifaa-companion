@@ -77,7 +77,7 @@ export default function DoctorsPage() {
                   <SelectValue placeholder="المحافظة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع المحافظات</SelectItem>
+                  <SelectItem value="all">جميع المحافظات</SelectItem>
                   {SYRIAN_GOVERNORATES.map((gov) => (
                     <SelectItem key={gov} value={gov}>{gov}</SelectItem>
                   ))}
