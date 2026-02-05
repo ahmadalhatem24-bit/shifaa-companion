@@ -23,14 +23,14 @@ import { useState } from 'react';
 
 export default function DoctorsPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGov, setSelectedGov] = useState<string>('');
-  const [selectedSpec, setSelectedSpec] = useState<string>('');
+  const [selectedGov, setSelectedGov] = useState<string>('all');
+  const [selectedSpec, setSelectedSpec] = useState<string>('all');
 
   const filteredDoctors = mockDoctors.filter((doctor) => {
     const matchesSearch = doctor.name.includes(searchQuery) || 
                           doctor.specialization.includes(searchQuery);
-    const matchesGov = !selectedGov || doctor.governorate === selectedGov;
-    const matchesSpec = !selectedSpec || doctor.specialization === selectedSpec;
+    const matchesGov = selectedGov === 'all' || doctor.governorate === selectedGov;
+    const matchesSpec = selectedSpec === 'all' || doctor.specialization === selectedSpec;
     return matchesSearch && matchesGov && matchesSpec;
   });
 
@@ -66,7 +66,7 @@ export default function DoctorsPage() {
                   <SelectValue placeholder="التخصص" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع التخصصات</SelectItem>
+                  <SelectItem value="all">جميع التخصصات</SelectItem>
                   {MEDICAL_SPECIALIZATIONS.map((spec) => (
                     <SelectItem key={spec} value={spec}>{spec}</SelectItem>
                   ))}
@@ -77,7 +77,7 @@ export default function DoctorsPage() {
                   <SelectValue placeholder="المحافظة" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">جميع المحافظات</SelectItem>
+                  <SelectItem value="all">جميع المحافظات</SelectItem>
                   {SYRIAN_GOVERNORATES.map((gov) => (
                     <SelectItem key={gov} value={gov}>{gov}</SelectItem>
                   ))}
