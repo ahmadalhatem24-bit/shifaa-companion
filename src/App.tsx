@@ -16,6 +16,7 @@ import HospitalsPage from "./pages/HospitalsPage";
 import LabsPage from "./pages/LabsPage";
 import CosmeticPage from "./pages/CosmeticPage";
 import PatientAppointmentsPage from "./pages/PatientAppointmentsPage";
+import ProfilePage from "./pages/ProfilePage";
 import ProviderDashboard from "./pages/provider/ProviderDashboard";
 import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage";
 import NotFound from "./pages/NotFound";
