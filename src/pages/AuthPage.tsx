@@ -409,7 +409,7 @@ export default function AuthPage() {
                       </p>
 
                       <form
-                        onSubmit={form.handleSubmit(handleSignupStep1)}
+                        onSubmit={signupForm.handleSubmit(handleSignupStep1)}
                         className="space-y-4"
                       >
                         <div className="space-y-2">
@@ -417,14 +417,14 @@ export default function AuthPage() {
                           <div className="relative">
                             <User className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
-                              {...form.register("name")}
+                              {...signupForm.register("name")}
                               placeholder="أدخل اسمك الكامل"
                               className="pr-10"
                             />
                           </div>
-                          {form.formState.errors.name && (
+                          {signupForm.formState.errors.name && (
                             <p className="text-sm text-destructive">
-                              {form.formState.errors.name.message}
+                              {signupForm.formState.errors.name.message}
                             </p>
                           )}
                         </div>
@@ -434,15 +434,15 @@ export default function AuthPage() {
                           <div className="relative">
                             <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                             <Input
-                              {...form.register("email")}
+                              {...signupForm.register("email")}
                               type="email"
                               placeholder="example@email.com"
                               className="pr-10"
                             />
                           </div>
-                          {form.formState.errors.email && (
+                          {signupForm.formState.errors.email && (
                             <p className="text-sm text-destructive">
-                              {form.formState.errors.email.message}
+                              {signupForm.formState.errors.email.message}
                             </p>
                           )}
                         </div>
@@ -453,7 +453,7 @@ export default function AuthPage() {
                             <div className="relative">
                               <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                               <Input
-                                {...form.register("password")}
+                                {...signupForm.register("password")}
                                 type="password"
                                 placeholder="••••••••"
                                 className="pr-10"
@@ -465,20 +465,20 @@ export default function AuthPage() {
                               تأكيد كلمة المرور
                             </Label>
                             <Input
-                              {...form.register("confirmPassword")}
+                              {...signupForm.register("confirmPassword")}
                               type="password"
                               placeholder="••••••••"
                             />
                           </div>
                         </div>
-                        {form.formState.errors.password && (
+                        {signupForm.formState.errors.password && (
                           <p className="text-sm text-destructive">
-                            {form.formState.errors.password.message}
+                            {signupForm.formState.errors.password.message}
                           </p>
                         )}
-                        {form.formState.errors.confirmPassword && (
+                        {signupForm.formState.errors.confirmPassword && (
                           <p className="text-sm text-destructive">
-                            {form.formState.errors.confirmPassword.message}
+                            {signupForm.formState.errors.confirmPassword.message}
                           </p>
                         )}
 
@@ -490,7 +490,7 @@ export default function AuthPage() {
                                 key={role.value}
                                 type="button"
                                 onClick={() =>
-                                  form.setValue("role", role.value)
+                                  signupForm.setValue("role", role.value)
                                 }
                                 className={`p-4 rounded-xl border-2 transition-all text-right ${
                                   selectedRole === role.value
