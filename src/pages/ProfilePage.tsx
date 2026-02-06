@@ -61,7 +61,6 @@ const maritalStatuses = ["أعزب", "متزوج", "مطلق", "أرمل"];
 const relations = ["أب", "أم", "زوج/زوجة", "ابن/ابنة", "أخ/أخت", "صديق", "آخر"];
 
 export default function ProfilePage() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
