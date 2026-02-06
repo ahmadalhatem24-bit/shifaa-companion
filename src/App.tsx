@@ -26,6 +26,7 @@ import HospitalDashboard from "./pages/provider/HospitalDashboard";
 import DentalDashboard from "./pages/provider/DentalDashboard";
 import CosmeticDashboard from "./pages/provider/CosmeticDashboard";
 import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage";
+import SystemCheckPage from "./pages/SystemCheckPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -41,6 +42,8 @@ const App = () => (
             {/* Public Routes */}
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
+            {/* System Check (Development Only) */}
+            <Route path="/system-check" element={<SystemCheckPage />} />
             <Route path="/doctors" element={<DoctorsPage />} />
             <Route path="/doctors/:id" element={<DoctorDetailPage />} />
             <Route path="/dental" element={<DentalPage />} />
