@@ -173,7 +173,7 @@ export default function AuthPage() {
     },
   });
 
-  const selectedRole = form.watch("role");
+  const selectedRole = signupForm.watch("role");
   const isProvider = [
     "doctor",
     "pharmacist",
