@@ -78,6 +78,14 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/ai-assistant"
+              element={
+                <ProtectedRoute>
+                  <AIAssistantPage />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected Provider Routes */}
             <Route

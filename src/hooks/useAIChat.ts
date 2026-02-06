@@ -64,7 +64,7 @@ export function useAIChat() {
       id: m.id,
       role: m.role as 'user' | 'assistant',
       content: m.content,
-      attachments: m.attachments as Attachment[] || [],
+      attachments: (m.attachments as unknown as Attachment[]) || [],
       created_at: m.created_at
     })) || []);
   }, []);
