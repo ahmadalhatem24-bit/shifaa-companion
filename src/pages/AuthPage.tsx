@@ -141,8 +141,18 @@ export default function AuthPage() {
   const { login, signup, setDemoUser, redirectBasedOnRole } = useAuth();
   const navigate = useNavigate();
 
-  const form = useForm({
-    resolver: zodResolver(step1Schema),
+  // Login form - only requires email and password
+  const loginForm = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  // Signup form - requires all fields
+  const signupForm = useForm({
+    resolver: zodResolver(signupStep1Schema),
     defaultValues: {
       name: "",
       email: "",
