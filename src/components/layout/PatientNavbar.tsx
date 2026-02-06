@@ -64,9 +64,9 @@ export function PatientNavbar() {
           </Link>
           
           <Link 
-            to="/assistant" 
+            to="/ai-assistant" 
             className={`text-sm font-medium transition-colors hover:text-primary flex items-center gap-1 ${
-              location.pathname === '/assistant' ? 'text-primary' : 'text-muted-foreground'
+              location.pathname === '/ai-assistant' ? 'text-primary' : 'text-muted-foreground'
             }`}
           >
             <Sparkles className="h-4 w-4" />
