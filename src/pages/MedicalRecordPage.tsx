@@ -29,7 +29,6 @@ import { Allergies } from "@/components/medical-record/Allergies";
 import { Medications } from "@/components/medical-record/Medications";
 
 export default function MedicalRecordPage() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
 
