@@ -91,7 +91,14 @@ const roles: {
   },
 ];
 
-const step1Schema = z
+// Schema for login - only email and password required
+const loginSchema = z.object({
+  email: z.string().email("البريد الإلكتروني غير صالح"),
+  password: z.string().min(6, "كلمة المرور يجب أن تكون 6 أحرف على الأقل"),
+});
+
+// Schema for signup step 1 - all fields required
+const signupStep1Schema = z
   .object({
     name: z.string().min(3, "الاسم يجب أن يكون 3 أحرف على الأقل"),
     email: z.string().email("البريد الإلكتروني غير صالح"),
