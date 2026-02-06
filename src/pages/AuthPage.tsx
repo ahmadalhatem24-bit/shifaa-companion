@@ -231,7 +231,7 @@ export default function AuthPage() {
   const handleSignupStep2 = async (data: any) => {
     setIsLoading(true);
     try {
-      const step1Data = form.getValues();
+      const step1Data = signupForm.getValues();
       const result = await signup({ ...step1Data, ...data });
       if (result.success) {
         toast.success(
