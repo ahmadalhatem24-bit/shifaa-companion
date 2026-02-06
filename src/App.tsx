@@ -19,6 +19,7 @@ import CosmeticPage from "./pages/CosmeticPage";
 import PatientAppointmentsPage from "./pages/PatientAppointmentsPage";
 import ProfilePage from "./pages/ProfilePage";
 import MedicalRecordPage from "./pages/MedicalRecordPage";
+import AIAssistantPage from "./pages/AIAssistantPage";
 import ProviderDashboard from "./pages/provider/ProviderDashboard";
 import PharmacyDashboard from "./pages/provider/PharmacyDashboard";
 import LaboratoryDashboard from "./pages/provider/LaboratoryDashboard";
