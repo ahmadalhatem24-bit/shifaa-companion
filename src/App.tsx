@@ -30,6 +30,12 @@ import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage"
 import SystemCheckPage from "./pages/SystemCheckPage";
 import NotFound from "./pages/NotFound";
 
+// Admin Pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminProvidersPage from "./pages/admin/AdminProvidersPage";
+import AdminAppointmentsPage from "./pages/admin/AdminAppointmentsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
