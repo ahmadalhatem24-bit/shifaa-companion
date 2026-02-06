@@ -30,6 +30,12 @@ import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage"
 import SystemCheckPage from "./pages/SystemCheckPage";
 import NotFound from "./pages/NotFound";
 
+// Admin Pages
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsersPage from "./pages/admin/AdminUsersPage";
+import AdminProvidersPage from "./pages/admin/AdminProvidersPage";
+import AdminAppointmentsPage from "./pages/admin/AdminAppointmentsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -159,6 +165,80 @@ const App = () => (
                   ]}
                 >
                   <ProviderAppointmentsPage />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminDashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminUsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/doctors"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminProvidersPage providerType="doctor" title="إدارة الأطباء" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/hospitals"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminProvidersPage providerType="hospital" title="إدارة المشافي" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/pharmacies"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminProvidersPage providerType="pharmacist" title="إدارة الصيدليات" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/laboratories"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminProvidersPage providerType="laboratory" title="إدارة المختبرات" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/dental"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminProvidersPage providerType="dental" title="إدارة عيادات الأسنان" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/cosmetic"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminProvidersPage providerType="cosmetic" title="إدارة مراكز التجميل" />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin/appointments"
+              element={
+                <ProtectedRoute allowedRoles={["admin"]}>
+                  <AdminAppointmentsPage />
                 </ProtectedRoute>
               }
             />
