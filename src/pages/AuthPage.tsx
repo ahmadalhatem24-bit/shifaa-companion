@@ -296,7 +296,7 @@ export default function AuthPage() {
                 </p>
 
                 <form
-                  onSubmit={form.handleSubmit(handleLogin)}
+                  onSubmit={loginForm.handleSubmit(handleLogin)}
                   className="space-y-4"
                 >
                   <div className="space-y-2">
@@ -304,15 +304,15 @@ export default function AuthPage() {
                     <div className="relative">
                       <Mail className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
-                        {...form.register("email")}
+                        {...loginForm.register("email")}
                         type="email"
                         placeholder="example@email.com"
                         className="pr-10"
                       />
                     </div>
-                    {form.formState.errors.email && (
+                    {loginForm.formState.errors.email && (
                       <p className="text-sm text-destructive">
-                        {form.formState.errors.email.message}
+                        {loginForm.formState.errors.email.message}
                       </p>
                     )}
                   </div>
@@ -322,15 +322,15 @@ export default function AuthPage() {
                     <div className="relative">
                       <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                       <Input
-                        {...form.register("password")}
+                        {...loginForm.register("password")}
                         type="password"
                         placeholder="••••••••"
                         className="pr-10"
                       />
                     </div>
-                    {form.formState.errors.password && (
+                    {loginForm.formState.errors.password && (
                       <p className="text-sm text-destructive">
-                        {form.formState.errors.password.message}
+                        {loginForm.formState.errors.password.message}
                       </p>
                     )}
                   </div>
