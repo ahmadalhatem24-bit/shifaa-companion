@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { 
+import heroImage from '@/assets/hero-medical.jpg';
+import {
   Search, 
   MapPin, 
   Star, 
@@ -204,7 +205,7 @@ export default function HomePage() {
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-l from-primary/20 to-transparent rounded-3xl blur-2xl" />
                 <img 
-                  src="https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=600&h=500&fit=crop"
+                  src={heroImage}
                   alt="Medical Team"
                   className="relative rounded-3xl shadow-2xl"
                 />
