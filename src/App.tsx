@@ -29,6 +29,7 @@ import CosmeticDashboard from "./pages/provider/CosmeticDashboard";
 import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage";
 import ProviderPatientsPage from "./pages/provider/ProviderPatientsPage";
 import PatientMedicalRecordPage from "./pages/provider/PatientMedicalRecordPage";
+import ProviderSettingsPage from "./pages/provider/ProviderSettingsPage";
 import SystemCheckPage from "./pages/SystemCheckPage";
 import NotFound from "./pages/NotFound";
 
@@ -201,6 +202,23 @@ const App = () => (
                   ]}
                 >
                   <PatientMedicalRecordPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/settings"
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    "doctor",
+                    "pharmacist",
+                    "hospital",
+                    "laboratory",
+                    "dental",
+                    "cosmetic",
+                  ]}
+                >
+                  <ProviderSettingsPage />
                 </ProtectedRoute>
               }
             />
