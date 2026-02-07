@@ -205,6 +205,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: "حدث خطأ في إنشاء الحساب" };
       }
 
+      // Wait a moment for the trigger to create the user_role record
+      await new Promise(resolve => setTimeout(resolve, 500));
+
       // Update user role if not patient (patient is default)
       if (data.role !== "patient") {
         const { error: roleError } = await supabase
@@ -214,7 +217,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         if (roleError) {
           console.error("Error updating role:", roleError);
+          // If update fails, try inserting
+          const { error: insertRoleError } = await supabase
+            .from("user_roles")
+            .insert({ user_id: authData.user.id, role: data.role });
+          
+          if (insertRoleError) {
+            console.error("Error inserting role:", insertRoleError);
+          }
         }
+      }
+
+      // Update profile with additional info
+      const { error: profileError } = await supabase
+        .from("profiles")
+        .update({ full_name: data.name })
+        .eq("user_id", authData.user.id);
+
+      if (profileError) {
+        console.error("Error updating profile:", profileError);
       }
 
       // If provider, create provider profile
@@ -256,6 +277,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUserRole(data.role);
       return { success: true };
     } catch (error: any) {
+      console.error("Signup error:", error);
       return { success: false, error: error.message };
     }
   };

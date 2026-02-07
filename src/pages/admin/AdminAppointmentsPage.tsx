@@ -51,7 +51,8 @@ export default function AdminAppointmentsPage() {
 
   const fetchAppointments = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch appointments with provider info
+      const { data: appointmentsData, error } = await supabase
         .from("appointments")
         .select(
           `
@@ -60,6 +61,21 @@ export default function AdminAppointmentsPage() {
         `
         )
         .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      // Fetch patient profiles to get names
+      const patientIds = [...new Set((appointmentsData || []).map(a => a.patient_id))];
+      const { data: profiles } = await supabase
+        .from("profiles")
+        .select("user_id, full_name")
+        .in("user_id", patientIds);
+
+      // Combine data
+      const data = (appointmentsData || []).map(apt => ({
+        ...apt,
+        profiles: profiles?.find(p => p.user_id === apt.patient_id),
+      }));
 
       if (error) throw error;
       setAppointments(data || []);
@@ -76,6 +92,11 @@ export default function AdminAppointmentsPage() {
   };
 
   const columns: Column<Appointment>[] = [
+    {
+      key: "profiles",
+      header: "المريض",
+      render: (apt) => apt.profiles?.full_name || "-",
+    },
     {
       key: "providers",
       header: "مزود الخدمة",
