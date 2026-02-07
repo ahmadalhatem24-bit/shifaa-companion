@@ -469,6 +469,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_provider_profile: {
+        Args: {
+          _address?: string
+          _email: string
+          _governorate?: string
+          _license_number?: string
+          _name: string
+          _provider_type: Database["public"]["Enums"]["provider_type"]
+          _specialization?: string
+          _user_id: string
+        }
+        Returns: string
+      }
       get_user_role: {
         Args: { _user_id: string }
         Returns: Database["public"]["Enums"]["user_role"]
