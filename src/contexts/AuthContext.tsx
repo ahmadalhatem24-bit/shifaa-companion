@@ -208,23 +208,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Wait a moment for the trigger to create the user_role record
       await new Promise(resolve => setTimeout(resolve, 500));
 
-      // Update user role if not patient (patient is default)
+      // Update user role using security definer function (bypasses RLS)
       if (data.role !== "patient") {
-        const { error: roleError } = await supabase
-          .from("user_roles")
-          .update({ role: data.role })
-          .eq("user_id", authData.user.id);
+        const { error: roleError } = await supabase.rpc("set_user_role", {
+          _user_id: authData.user.id,
+          _role: data.role,
+        });
 
         if (roleError) {
-          console.error("Error updating role:", roleError);
-          // If update fails, try inserting
-          const { error: insertRoleError } = await supabase
-            .from("user_roles")
-            .insert({ user_id: authData.user.id, role: data.role });
-          
-          if (insertRoleError) {
-            console.error("Error inserting role:", insertRoleError);
-          }
+          console.error("Error setting role:", roleError);
         }
       }
 
