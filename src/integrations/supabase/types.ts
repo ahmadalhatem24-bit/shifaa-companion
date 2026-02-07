@@ -484,6 +484,13 @@ export type Database = {
         Args: { _patient_id: string }
         Returns: boolean
       }
+      set_user_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["user_role"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
