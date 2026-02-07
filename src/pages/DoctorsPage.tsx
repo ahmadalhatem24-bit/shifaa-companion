@@ -1,36 +1,77 @@
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { 
-  Search, 
-  MapPin, 
-  Star,
-  Filter,
-  ChevronLeft
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { Search, MapPin, Star, ChevronLeft, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { PatientNavbar } from '@/components/layout/PatientNavbar';
-import { mockDoctors } from '@/data/mockData';
-import { SYRIAN_GOVERNORATES, MEDICAL_SPECIALIZATIONS } from '@/types';
-import { useState } from 'react';
+} from "@/components/ui/select";
+import { PatientNavbar } from "@/components/layout/PatientNavbar";
+import { SYRIAN_GOVERNORATES, MEDICAL_SPECIALIZATIONS } from "@/types";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
+
+interface Doctor {
+  id: string;
+  name: string;
+  specialization: string | null;
+  governorate: string | null;
+  address: string | null;
+  bio: string | null;
+  avatar_url: string | null;
+  consultation_fee: number | null;
+  rating: number | null;
+  review_count: number | null;
+  is_verified: boolean | null;
+}
 
 export default function DoctorsPage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedGov, setSelectedGov] = useState<string>('all');
-  const [selectedSpec, setSelectedSpec] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedGov, setSelectedGov] = useState<string>("all");
+  const [selectedSpec, setSelectedSpec] = useState<string>("all");
+  const [doctors, setDoctors] = useState<Doctor[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const filteredDoctors = mockDoctors.filter((doctor) => {
-    const matchesSearch = doctor.name.includes(searchQuery) || 
-                          doctor.specialization.includes(searchQuery);
-    const matchesGov = selectedGov === 'all' || doctor.governorate === selectedGov;
-    const matchesSpec = selectedSpec === 'all' || doctor.specialization === selectedSpec;
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("providers")
+          .select(
+            "id, name, specialization, governorate, address, bio, avatar_url, consultation_fee, rating, review_count, is_verified"
+          )
+          .eq("provider_type", "doctor")
+          .order("rating", { ascending: false, nullsFirst: false });
+
+        if (error) {
+          console.error("Error fetching doctors:", error);
+        } else {
+          setDoctors(data || []);
+        }
+      } catch (error) {
+        console.error("Error fetching doctors:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchDoctors();
+  }, []);
+
+  const filteredDoctors = doctors.filter((doctor) => {
+    const matchesSearch =
+      doctor.name.includes(searchQuery) ||
+      doctor.specialization?.includes(searchQuery);
+    const matchesGov =
+      selectedGov === "all" || doctor.governorate === selectedGov;
+    const matchesSpec =
+      selectedSpec === "all" || doctor.specialization === selectedSpec;
     return matchesSearch && matchesGov && matchesSpec;
   });
 
@@ -41,10 +82,7 @@ export default function DoctorsPage() {
       {/* Header */}
       <section className="bg-gradient-to-bl from-primary/5 to-background py-12">
         <div className="container">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <h1 className="text-3xl lg:text-4xl font-bold mb-4">الأطباء</h1>
             <p className="text-muted-foreground mb-8">
               ابحث عن أفضل الأطباء واحجز موعدك بسهولة
@@ -54,7 +92,7 @@ export default function DoctorsPage() {
             <div className="flex flex-col sm:flex-row gap-4 p-4 bg-card rounded-xl shadow-lg border border-border/50">
               <div className="flex-1 relative">
                 <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-                <Input 
+                <Input
                   placeholder="ابحث بالاسم أو التخصص..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -68,7 +106,9 @@ export default function DoctorsPage() {
                 <SelectContent>
                   <SelectItem value="all">جميع التخصصات</SelectItem>
                   {MEDICAL_SPECIALIZATIONS.map((spec) => (
-                    <SelectItem key={spec} value={spec}>{spec}</SelectItem>
+                    <SelectItem key={spec} value={spec}>
+                      {spec}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -79,7 +119,9 @@ export default function DoctorsPage() {
                 <SelectContent>
                   <SelectItem value="all">جميع المحافظات</SelectItem>
                   {SYRIAN_GOVERNORATES.map((gov) => (
-                    <SelectItem key={gov} value={gov}>{gov}</SelectItem>
+                    <SelectItem key={gov} value={gov}>
+                      {gov}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -91,73 +133,119 @@ export default function DoctorsPage() {
       {/* Results */}
       <section className="py-12">
         <div className="container">
-          <p className="text-muted-foreground mb-6">
-            تم العثور على <span className="font-semibold text-foreground">{filteredDoctors.length}</span> طبيب
-          </p>
+          {isLoading ? (
+            <>
+              <Skeleton className="h-6 w-40 mb-6" />
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Skeleton key={i} className="h-72 rounded-xl" />
+                ))}
+              </div>
+            </>
+          ) : (
+            <>
+              <p className="text-muted-foreground mb-6">
+                تم العثور على{" "}
+                <span className="font-semibold text-foreground">
+                  {filteredDoctors.length}
+                </span>{" "}
+                طبيب
+              </p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDoctors.map((doctor, i) => (
-              <motion.div
-                key={doctor.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="medical-card p-6"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src={doctor.avatar} 
-                    alt={doctor.name}
-                    className="h-16 w-16 rounded-xl object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                      {doctor.isVerified && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
-                          معتمد
-                        </span>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredDoctors.map((doctor, i) => (
+                  <motion.div
+                    key={doctor.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="medical-card p-6"
+                  >
+                    <div className="flex items-start gap-4 mb-4">
+                      {doctor.avatar_url ? (
+                        <img
+                          src={doctor.avatar_url}
+                          alt={doctor.name}
+                          className="h-16 w-16 rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                          <User className="h-8 w-8 text-primary" />
+                        </div>
                       )}
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-lg">{doctor.name}</h3>
+                          {doctor.is_verified && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                              معتمد
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          {doctor.specialization || "طب عام"}
+                        </p>
+                        <div className="flex items-center gap-1 mt-1">
+                          <Star className="h-4 w-4 fill-warning text-warning" />
+                          <span className="text-sm font-medium">
+                            {doctor.rating || 0}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            ({doctor.review_count || 0} تقييم)
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{doctor.rating}</span>
-                      <span className="text-xs text-muted-foreground">({doctor.reviewCount} تقييم)</span>
+
+                    {doctor.bio && (
+                      <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
+                        {doctor.bio}
+                      </p>
+                    )}
+
+                    {(doctor.address || doctor.governorate) && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">
+                          {[doctor.address, doctor.governorate]
+                            .filter(Boolean)
+                            .join("، ")}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between pt-4 border-t border-border">
+                      <div>
+                        <span className="text-xs text-muted-foreground">الكشفية</span>
+                        <p className="font-semibold text-primary">
+                          {doctor.consultation_fee
+                            ? `${doctor.consultation_fee.toLocaleString()} ل.س`
+                            : "غير محدد"}
+                        </p>
+                      </div>
+                      <Button variant="hero" size="sm" asChild>
+                        <Link to={`/doctors/${doctor.id}`}>
+                          احجز الآن
+                          <ChevronLeft className="h-4 w-4" />
+                        </Link>
+                      </Button>
                     </div>
-                  </div>
-                </div>
-                
-                <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
-                  {doctor.bio}
-                </p>
+                  </motion.div>
+                ))}
+              </div>
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{doctor.address}، {doctor.governorate}</span>
+              {filteredDoctors.length === 0 && (
+                <div className="text-center py-20">
+                  <User className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                  <p className="text-muted-foreground text-lg">
+                    لم يتم العثور على أطباء
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    جرب تغيير معايير البحث أو سجّل كطبيب لتظهر هنا
+                  </p>
                 </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div>
-                    <span className="text-xs text-muted-foreground">الكشفية</span>
-                    <p className="font-semibold text-primary">{doctor.consultationFee?.toLocaleString()} ل.س</p>
-                  </div>
-                  <Button variant="hero" size="sm" asChild>
-                    <Link to={`/doctors/${doctor.id}`}>
-                      احجز الآن
-                      <ChevronLeft className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {filteredDoctors.length === 0 && (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground text-lg">لم يتم العثور على نتائج</p>
-              <p className="text-sm text-muted-foreground mt-2">جرب تغيير معايير البحث</p>
-            </div>
+              )}
+            </>
           )}
         </div>
       </section>
