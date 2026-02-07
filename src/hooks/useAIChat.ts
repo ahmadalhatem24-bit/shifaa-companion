@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -25,6 +25,21 @@ export interface Conversation {
   updated_at: string;
 }
 
+interface PatientData {
+  profile?: {
+    full_name?: string;
+    gender?: string;
+    date_of_birth?: string;
+    blood_type?: string;
+    height?: number;
+    weight?: number;
+  };
+  allergies?: Array<{ allergy_name: string; severity?: string }>;
+  medications?: Array<{ medication_name: string; dosage?: string; frequency?: string; is_active?: boolean }>;
+  chronicDiseases?: Array<{ disease_name: string; diagnosis_date?: string }>;
+  familyHistory?: Array<{ condition_name: string; relation?: string }>;
+}
+
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-chat`;
 
 export function useAIChat() {
@@ -33,6 +48,33 @@ export function useAIChat() {
   const [currentConversation, setCurrentConversation] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
+  const [patientData, setPatientData] = useState<PatientData | null>(null);
+
+  // Fetch patient medical data
+  const fetchPatientData = useCallback(async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const [profileRes, allergiesRes, medicationsRes, chronicRes, familyRes] = await Promise.all([
+      supabase.from('profiles').select('full_name, gender, date_of_birth, blood_type, height, weight').eq('user_id', user.id).single(),
+      supabase.from('allergies').select('allergy_name, severity').eq('user_id', user.id),
+      supabase.from('medications').select('medication_name, dosage, frequency, is_active').eq('user_id', user.id),
+      supabase.from('chronic_diseases').select('disease_name, diagnosis_date').eq('user_id', user.id),
+      supabase.from('family_history').select('condition_name, relation').eq('user_id', user.id),
+    ]);
+
+    setPatientData({
+      profile: profileRes.data || undefined,
+      allergies: allergiesRes.data || [],
+      medications: medicationsRes.data || [],
+      chronicDiseases: chronicRes.data || [],
+      familyHistory: familyRes.data || [],
+    });
+  }, []);
+
+  useEffect(() => {
+    fetchPatientData();
+  }, [fetchPatientData]);
 
   const fetchConversations = useCallback(async () => {
     const { data, error } = await supabase
@@ -175,6 +217,7 @@ export function useAIChat() {
             content: m.content,
             attachments: m.attachments
           })),
+          patientData, // Send patient medical data with each request
         }),
       });
 
@@ -256,7 +299,7 @@ export function useAIChat() {
       setIsLoading(false);
       setIsStreaming(false);
     }
-  }, [currentConversation, messages, createConversation, fetchConversations]);
+  }, [currentConversation, messages, patientData, createConversation, fetchConversations]);
 
   return {
     messages,
@@ -264,10 +307,12 @@ export function useAIChat() {
     currentConversation,
     isLoading,
     isStreaming,
+    patientData,
     fetchConversations,
     createConversation,
     selectConversation,
     deleteConversation,
     sendMessage,
+    refetchPatientData: fetchPatientData,
   };
 }
