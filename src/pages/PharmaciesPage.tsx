@@ -4,7 +4,6 @@ import {
   Search, 
   MapPin, 
   Star,
-  ChevronLeft,
   Pill,
   Clock,
   Upload,
@@ -23,85 +22,19 @@ import { PatientNavbar } from '@/components/layout/PatientNavbar';
 import { SYRIAN_GOVERNORATES } from '@/types';
 import { useState } from 'react';
 import { toast } from 'sonner';
-
-const pharmacies = [
-  {
-    id: 'p1',
-    name: 'صيدلية الشفاء',
-    avatar: 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop',
-    governorate: 'دمشق',
-    address: 'ساحة الأمويين، بناء الفردوس',
-    rating: 4.8,
-    reviewCount: 456,
-    isOpen: true,
-    openHours: '24 ساعة',
-    hasDelivery: true,
-    phone: '+963 11 111 2222',
-  },
-  {
-    id: 'p2',
-    name: 'صيدلية الحياة',
-    avatar: 'https://images.unsplash.com/photo-1576602976047-174e57a47881?w=150&h=150&fit=crop',
-    governorate: 'دمشق',
-    address: 'المالكي، شارع أبو رمانة',
-    rating: 4.7,
-    reviewCount: 234,
-    isOpen: true,
-    openHours: '8:00 - 23:00',
-    hasDelivery: true,
-    phone: '+963 11 222 3333',
-  },
-  {
-    id: 'p3',
-    name: 'صيدلية النور',
-    avatar: 'https://images.unsplash.com/photo-1471864190281-a93a3070b6de?w=150&h=150&fit=crop',
-    governorate: 'حلب',
-    address: 'حلب الجديدة، شارع النيل',
-    rating: 4.6,
-    reviewCount: 178,
-    isOpen: false,
-    openHours: '8:00 - 22:00',
-    hasDelivery: false,
-    phone: '+963 21 333 4444',
-  },
-  {
-    id: 'p4',
-    name: 'صيدلية الأمل',
-    avatar: 'https://images.unsplash.com/photo-1585435557343-3b092031a831?w=150&h=150&fit=crop',
-    governorate: 'حمص',
-    address: 'شارع الحضارة',
-    rating: 4.9,
-    reviewCount: 312,
-    isOpen: true,
-    openHours: '24 ساعة',
-    hasDelivery: true,
-    phone: '+963 31 444 5555',
-  },
-  {
-    id: 'p5',
-    name: 'صيدلية الصحة',
-    avatar: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?w=150&h=150&fit=crop',
-    governorate: 'اللاذقية',
-    address: 'شارع 8 آذار',
-    rating: 4.5,
-    reviewCount: 145,
-    isOpen: true,
-    openHours: '9:00 - 21:00',
-    hasDelivery: true,
-    phone: '+963 41 555 6666',
-  },
-];
+import { useProviders } from '@/hooks/useProviders';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function PharmaciesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGov, setSelectedGov] = useState<string>('all');
-  const [showOpenOnly, setShowOpenOnly] = useState<string>('all');
+  
+  const { data: pharmacies = [], isLoading } = useProviders('pharmacist');
 
   const filteredPharmacies = pharmacies.filter((pharmacy) => {
-    const matchesSearch = pharmacy.name.includes(searchQuery);
+    const matchesSearch = pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesGov = selectedGov === 'all' || pharmacy.governorate === selectedGov;
-    const matchesOpen = showOpenOnly === 'all' || (showOpenOnly === 'open' && pharmacy.isOpen);
-    return matchesSearch && matchesGov && matchesOpen;
+    return matchesSearch && matchesGov;
   });
 
   const handleUploadPrescription = () => {
@@ -146,15 +79,6 @@ export default function PharmaciesPage() {
                   className="pr-10"
                 />
               </div>
-              <Select value={showOpenOnly} onValueChange={setShowOpenOnly}>
-                <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="الحالة" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">الكل</SelectItem>
-                  <SelectItem value="open">مفتوح الآن</SelectItem>
-                </SelectContent>
-              </Select>
               <Select value={selectedGov} onValueChange={setSelectedGov}>
                 <SelectTrigger className="w-full sm:w-40">
                   <SelectValue placeholder="المحافظة" />
@@ -178,77 +102,88 @@ export default function PharmaciesPage() {
             تم العثور على <span className="font-semibold text-foreground">{filteredPharmacies.length}</span> صيدلية
           </p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPharmacies.map((pharmacy, i) => (
-              <motion.div
-                key={pharmacy.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="medical-card p-6"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src={pharmacy.avatar} 
-                    alt={pharmacy.name}
-                    className="h-16 w-16 rounded-xl object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{pharmacy.name}</h3>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{pharmacy.rating}</span>
-                      <span className="text-xs text-muted-foreground">({pharmacy.reviewCount} تقييم)</span>
+          {isLoading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="medical-card p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Skeleton className="h-16 w-16 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
                     </div>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    pharmacy.isOpen 
-                      ? 'bg-success/10 text-success' 
-                      : 'bg-destructive/10 text-destructive'
-                  }`}>
-                    {pharmacy.isOpen ? 'مفتوح' : 'مغلق'}
-                  </span>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-2/3" />
                 </div>
-
-                <div className="space-y-2 mb-4">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 flex-shrink-0" />
-                    <span>{pharmacy.openHours}</span>
+              ))}
+            </div>
+          ) : filteredPharmacies.length === 0 ? (
+            <div className="text-center py-12">
+              <Pill className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium mb-2">لا توجد صيدليات</h3>
+              <p className="text-muted-foreground">لم يتم العثور على صيدليات مطابقة للبحث</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredPharmacies.map((pharmacy, i) => (
+                <motion.div
+                  key={pharmacy.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="medical-card p-6"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <img 
+                      src={pharmacy.avatar_url || 'https://images.unsplash.com/photo-1587854692152-cbe660dbde88?w=150&h=150&fit=crop'} 
+                      alt={pharmacy.name}
+                      className="h-16 w-16 rounded-xl object-cover"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{pharmacy.name}</h3>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="text-sm font-medium">{pharmacy.rating || 0}</span>
+                        <span className="text-xs text-muted-foreground">({pharmacy.review_count || 0} تقييم)</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4 flex-shrink-0" />
-                    <span className="truncate">{pharmacy.address}، {pharmacy.governorate}</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Phone className="h-4 w-4 flex-shrink-0" />
-                    <span dir="ltr">{pharmacy.phone}</span>
-                  </div>
-                </div>
 
-                <div className="flex items-center gap-2 mb-4">
-                  {pharmacy.hasDelivery && (
-                    <span className="px-2 py-1 bg-primary/10 text-primary text-xs rounded-full">
-                      توصيل متاح
-                    </span>
-                  )}
-                </div>
+                  <div className="space-y-2 mb-4">
+                    {pharmacy.address && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{pharmacy.address}{pharmacy.governorate ? `، ${pharmacy.governorate}` : ''}</span>
+                      </div>
+                    )}
+                    {pharmacy.phone && (
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Phone className="h-4 w-4 flex-shrink-0" />
+                        <span dir="ltr">{pharmacy.phone}</span>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="flex gap-2 pt-4 border-t border-border">
-                  <Button variant="hero" size="sm" className="flex-1" asChild>
-                    <a href={`tel:${pharmacy.phone}`}>
-                      <Phone className="h-4 w-4" />
-                      اتصل الآن
-                    </a>
-                  </Button>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link to={`/pharmacies/${pharmacy.id}`}>
-                      التفاصيل
-                    </Link>
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                  <div className="flex gap-2 pt-4 border-t border-border">
+                    {pharmacy.phone && (
+                      <Button variant="hero" size="sm" className="flex-1" asChild>
+                        <a href={`tel:${pharmacy.phone}`}>
+                          <Phone className="h-4 w-4" />
+                          اتصل الآن
+                        </a>
+                      </Button>
+                    )}
+                    <Button variant="outline" size="sm" asChild>
+                      <Link to={`/pharmacies/${pharmacy.id}`}>
+                        التفاصيل
+                      </Link>
+                    </Button>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>

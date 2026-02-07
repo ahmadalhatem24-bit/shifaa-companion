@@ -5,8 +5,7 @@ import {
   MapPin, 
   Star,
   ChevronLeft,
-  SmilePlus,
-  Sparkles
+  SmilePlus
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,61 +19,8 @@ import {
 import { PatientNavbar } from '@/components/layout/PatientNavbar';
 import { SYRIAN_GOVERNORATES } from '@/types';
 import { useState } from 'react';
-
-const dentalClinics = [
-  {
-    id: 'd1',
-    name: 'عيادة ابتسامة دمشق',
-    avatar: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150&h=150&fit=crop',
-    specialization: 'طب أسنان تجميلي',
-    governorate: 'دمشق',
-    address: 'المزة، شارع الفيحاء',
-    rating: 4.9,
-    reviewCount: 312,
-    consultationFee: 25000,
-    services: ['تبييض الأسنان', 'زراعة', 'تقويم'],
-    isVerified: true,
-  },
-  {
-    id: 'd2',
-    name: 'مركز الابتسامة الذهبية',
-    avatar: 'https://images.unsplash.com/photo-1606811841689-23dfddce3e95?w=150&h=150&fit=crop',
-    specialization: 'جراحة فموية',
-    governorate: 'حلب',
-    address: 'حلب الجديدة، شارع النيل',
-    rating: 4.7,
-    reviewCount: 189,
-    consultationFee: 20000,
-    services: ['خلع ضرس العقل', 'جراحة لثة', 'زراعة'],
-    isVerified: true,
-  },
-  {
-    id: 'd3',
-    name: 'عيادة د. سامر للأسنان',
-    avatar: 'https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?w=150&h=150&fit=crop',
-    specialization: 'تقويم أسنان',
-    governorate: 'اللاذقية',
-    address: 'شارع 8 آذار',
-    rating: 4.8,
-    reviewCount: 156,
-    consultationFee: 30000,
-    services: ['تقويم معدني', 'تقويم شفاف', 'Invisalign'],
-    isVerified: true,
-  },
-  {
-    id: 'd4',
-    name: 'مركز أسنان الأطفال',
-    avatar: 'https://images.unsplash.com/photo-1598256989800-fe5f95da9787?w=150&h=150&fit=crop',
-    specialization: 'طب أسنان أطفال',
-    governorate: 'دمشق',
-    address: 'باب توما، شارع الأمين',
-    rating: 4.9,
-    reviewCount: 234,
-    consultationFee: 20000,
-    services: ['حشوات ملونة', 'فلورايد', 'تنظيف'],
-    isVerified: true,
-  },
-];
+import { useProviders } from '@/hooks/useProviders';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const dentalSpecializations = [
   'طب أسنان عام',
@@ -91,9 +37,11 @@ export default function DentalPage() {
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedSpec, setSelectedSpec] = useState<string>('all');
 
-  const filteredClinics = dentalClinics.filter((clinic) => {
-    const matchesSearch = clinic.name.includes(searchQuery) || 
-                          clinic.specialization.includes(searchQuery);
+  const { data: clinics = [], isLoading } = useProviders('dental');
+
+  const filteredClinics = clinics.filter((clinic) => {
+    const matchesSearch = clinic.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          (clinic.specialization?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
     const matchesGov = selectedGov === 'all' || clinic.governorate === selectedGov;
     const matchesSpec = selectedSpec === 'all' || clinic.specialization === selectedSpec;
     return matchesSearch && matchesGov && matchesSpec;
@@ -165,70 +113,87 @@ export default function DentalPage() {
             تم العثور على <span className="font-semibold text-foreground">{filteredClinics.length}</span> عيادة
           </p>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredClinics.map((clinic, i) => (
-              <motion.div
-                key={clinic.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="medical-card p-6"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src={clinic.avatar} 
-                    alt={clinic.name}
-                    className="h-16 w-16 rounded-xl object-cover"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-lg">{clinic.name}</h3>
-                      {clinic.isVerified && (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
-                          معتمد
-                        </span>
+          {isLoading ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="medical-card p-6">
+                  <div className="flex items-start gap-4 mb-4">
+                    <Skeleton className="h-16 w-16 rounded-xl" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-5 w-3/4" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                  </div>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-2/3" />
+                </div>
+              ))}
+            </div>
+          ) : filteredClinics.length === 0 ? (
+            <div className="text-center py-12">
+              <SmilePlus className="h-16 w-16 mx-auto text-muted-foreground/30 mb-4" />
+              <h3 className="text-lg font-medium mb-2">لا توجد عيادات</h3>
+              <p className="text-muted-foreground">لم يتم العثور على عيادات مطابقة للبحث</p>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredClinics.map((clinic, i) => (
+                <motion.div
+                  key={clinic.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: i * 0.05 }}
+                  className="medical-card p-6"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    <img 
+                      src={clinic.avatar_url || 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=150&h=150&fit=crop'} 
+                      alt={clinic.name}
+                      className="h-16 w-16 rounded-xl object-cover"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-lg">{clinic.name}</h3>
+                        {clinic.is_verified && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-success/10 text-success text-xs font-medium">
+                            معتمد
+                          </span>
+                        )}
+                      </div>
+                      {clinic.specialization && (
+                        <p className="text-sm text-muted-foreground">{clinic.specialization}</p>
                       )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{clinic.specialization}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{clinic.rating}</span>
-                      <span className="text-xs text-muted-foreground">({clinic.reviewCount} تقييم)</span>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="text-sm font-medium">{clinic.rating || 0}</span>
+                        <span className="text-xs text-muted-foreground">({clinic.review_count || 0} تقييم)</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {clinic.services.map((service) => (
-                    <span 
-                      key={service}
-                      className="px-2 py-1 bg-info/10 text-info text-xs rounded-full"
-                    >
-                      {service}
-                    </span>
-                  ))}
-                </div>
+                  {clinic.address && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                      <MapPin className="h-4 w-4 flex-shrink-0" />
+                      <span className="truncate">{clinic.address}{clinic.governorate ? `، ${clinic.governorate}` : ''}</span>
+                    </div>
+                  )}
 
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                  <MapPin className="h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">{clinic.address}، {clinic.governorate}</span>
-                </div>
-
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div>
-                    <span className="text-xs text-muted-foreground">الكشفية</span>
-                    <p className="font-semibold text-info">{clinic.consultationFee?.toLocaleString()} ل.س</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <div>
+                      <span className="text-xs text-muted-foreground">الكشفية</span>
+                      <p className="font-semibold text-info">{(clinic.consultation_fee || 0).toLocaleString()} ل.س</p>
+                    </div>
+                    <Button variant="hero" size="sm" asChild>
+                      <Link to={`/dental/${clinic.id}`}>
+                        احجز الآن
+                        <ChevronLeft className="h-4 w-4" />
+                      </Link>
+                    </Button>
                   </div>
-                  <Button variant="hero" size="sm" asChild>
-                    <Link to={`/dental/${clinic.id}`}>
-                      احجز الآن
-                      <ChevronLeft className="h-4 w-4" />
-                    </Link>
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
     </div>
