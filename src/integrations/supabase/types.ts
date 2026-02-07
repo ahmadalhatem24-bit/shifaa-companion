@@ -480,6 +480,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      provider_can_access_patient: {
+        Args: { _patient_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       appointment_status: "pending" | "confirmed" | "completed" | "cancelled"
