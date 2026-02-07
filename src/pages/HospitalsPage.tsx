@@ -43,7 +43,7 @@ const hospitals = [
   },
   {
     id: 'h2',
-    name: 'مستشفى الأسد الجامعي',
+    name: 'المشفى الوطني الجامعي',
     avatar: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=150&h=150&fit=crop',
     governorate: 'دمشق',
     address: 'المزة 86',
