@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
@@ -13,11 +13,11 @@ import {
   MessageSquare,
   ChevronRight,
   Check,
-  User
+  User,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PatientNavbar } from '@/components/layout/PatientNavbar';
-import { mockDoctors } from '@/data/mockData';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -36,6 +36,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
 
 const timeSlots = [
   '09:00', '09:30', '10:00', '10:30', '11:00', '11:30',
@@ -53,17 +54,37 @@ const workingDays = [
   { day: 'السبت', hours: 'مغلق', isOpen: false },
 ];
 
-const reviews = [
-  { id: 1, name: 'محمد أحمد', rating: 5, comment: 'طبيب ممتاز ومحترف جداً', date: '2024-01-15' },
-  { id: 2, name: 'سارة علي', rating: 5, comment: 'شكراً على الاهتمام والمتابعة', date: '2024-01-10' },
-  { id: 3, name: 'أحمد خالد', rating: 4, comment: 'خدمة جيدة ومعاملة راقية', date: '2024-01-05' },
-];
+interface Provider {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+  specialization: string | null;
+  governorate: string | null;
+  address: string | null;
+  bio: string | null;
+  phone: string | null;
+  consultation_fee: number | null;
+  rating: number | null;
+  review_count: number | null;
+  is_verified: boolean | null;
+}
+
+interface Review {
+  id: string;
+  rating: number;
+  comment: string | null;
+  created_at: string;
+  patient_id: string;
+}
 
 export default function DoctorDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   
+  const [doctor, setDoctor] = useState<Provider | null>(null);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [notes, setNotes] = useState('');
@@ -71,7 +92,100 @@ export default function DoctorDetailPage() {
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const doctor = mockDoctors.find(d => d.id === id);
+  useEffect(() => {
+    if (id) {
+      fetchDoctor();
+      fetchReviews();
+    }
+  }, [id]);
+
+  const fetchDoctor = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('providers')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) throw error;
+      setDoctor(data);
+    } catch (error) {
+      console.error('Error fetching doctor:', error);
+      toast.error('خطأ في تحميل بيانات الطبيب');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('provider_id', id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setReviews(data || []);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+    }
+  };
+
+  const handleBooking = async () => {
+    if (!isAuthenticated || !user) {
+      toast.error('يجب تسجيل الدخول أولاً');
+      navigate('/auth');
+      return;
+    }
+
+    if (!selectedDate || !selectedTime || !doctor) {
+      toast.error('الرجاء اختيار التاريخ والوقت');
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          patient_id: user.id,
+          provider_id: doctor.id,
+          appointment_date: format(selectedDate, 'yyyy-MM-dd'),
+          appointment_time: selectedTime,
+          notes: notes || null,
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      setShowBookingDialog(false);
+      setShowSuccessDialog(true);
+      
+      // Reset form
+      setSelectedDate(undefined);
+      setSelectedTime(null);
+      setNotes('');
+    } catch (error: any) {
+      console.error('Error creating appointment:', error);
+      toast.error(error.message || 'حدث خطأ أثناء إرسال طلب الحجز');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <PatientNavbar />
+        <div className="container py-20 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </div>
+    );
+  }
 
   if (!doctor) {
     return (
@@ -84,33 +198,6 @@ export default function DoctorDetailPage() {
       </div>
     );
   }
-
-  const handleBooking = async () => {
-    if (!isAuthenticated) {
-      toast.error('يجب تسجيل الدخول أولاً');
-      navigate('/auth');
-      return;
-    }
-
-    if (!selectedDate || !selectedTime) {
-      toast.error('الرجاء اختيار التاريخ والوقت');
-      return;
-    }
-
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setShowBookingDialog(false);
-    setShowSuccessDialog(true);
-    
-    // Reset form
-    setSelectedDate(undefined);
-    setSelectedTime(null);
-    setNotes('');
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -138,15 +225,21 @@ export default function DoctorDetailPage() {
             <div className="flex-1">
               <div className="medical-card p-6">
                 <div className="flex flex-col sm:flex-row gap-6">
-                  <img 
-                    src={doctor.avatar} 
-                    alt={doctor.name}
-                    className="h-32 w-32 rounded-2xl object-cover mx-auto sm:mx-0"
-                  />
+                  {doctor.avatar_url ? (
+                    <img 
+                      src={doctor.avatar_url} 
+                      alt={doctor.name}
+                      className="h-32 w-32 rounded-2xl object-cover mx-auto sm:mx-0"
+                    />
+                  ) : (
+                    <div className="h-32 w-32 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto sm:mx-0">
+                      <User className="h-16 w-16 text-primary" />
+                    </div>
+                  )}
                   <div className="flex-1 text-center sm:text-right">
                     <div className="flex items-center justify-center sm:justify-start gap-2 mb-2">
                       <h1 className="text-2xl font-bold">{doctor.name}</h1>
-                      {doctor.isVerified && (
+                      {doctor.is_verified && (
                         <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-success/10 text-success text-xs font-medium">
                           <Shield className="h-3 w-3" />
                           معتمد
@@ -156,19 +249,21 @@ export default function DoctorDetailPage() {
                     <p className="text-primary font-medium mb-2">{doctor.specialization}</p>
                     <div className="flex items-center justify-center sm:justify-start gap-1 mb-4">
                       <Star className="h-5 w-5 fill-warning text-warning" />
-                      <span className="font-semibold">{doctor.rating}</span>
-                      <span className="text-muted-foreground">({doctor.reviewCount} تقييم)</span>
+                      <span className="font-semibold">{doctor.rating || 0}</span>
+                      <span className="text-muted-foreground">({doctor.review_count || 0} تقييم)</span>
                     </div>
-                    <p className="text-muted-foreground mb-4">{doctor.bio}</p>
+                    <p className="text-muted-foreground mb-4">{doctor.bio || 'لا يوجد وصف'}</p>
                     <div className="flex flex-wrap justify-center sm:justify-start gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
                         {doctor.governorate}
                       </span>
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-4 w-4" />
-                        <span dir="ltr">{doctor.phone}</span>
-                      </span>
+                      {doctor.phone && (
+                        <span className="flex items-center gap-1">
+                          <Phone className="h-4 w-4" />
+                          <span dir="ltr">{doctor.phone}</span>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -212,26 +307,30 @@ export default function DoctorDetailPage() {
                   <MessageSquare className="h-5 w-5 text-primary" />
                   التقييمات ({reviews.length})
                 </h2>
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <div key={review.id} className="p-4 bg-secondary/30 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                            <User className="h-4 w-4 text-primary" />
+                {reviews.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">لا توجد تقييمات بعد</p>
+                ) : (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div key={review.id} className="p-4 bg-secondary/30 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <User className="h-4 w-4 text-primary" />
+                            </div>
+                            <span className="font-medium">مريض</span>
                           </div>
-                          <span className="font-medium">{review.name}</span>
+                          <div className="flex items-center gap-1">
+                            {Array.from({ length: review.rating }).map((_, i) => (
+                              <Star key={i} className="h-4 w-4 fill-warning text-warning" />
+                            ))}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: review.rating }).map((_, i) => (
-                            <Star key={i} className="h-4 w-4 fill-warning text-warning" />
-                          ))}
-                        </div>
+                        <p className="text-sm text-muted-foreground">{review.comment}</p>
                       </div>
-                      <p className="text-sm text-muted-foreground">{review.comment}</p>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -243,7 +342,7 @@ export default function DoctorDetailPage() {
                 <div className="p-4 bg-primary/5 rounded-xl mb-6">
                   <p className="text-sm text-muted-foreground">رسوم الكشفية</p>
                   <p className="text-3xl font-bold text-primary">
-                    {doctor.consultationFee?.toLocaleString()} <span className="text-lg">ل.س</span>
+                    {(doctor.consultation_fee || 0).toLocaleString()} <span className="text-lg">ل.س</span>
                   </p>
                 </div>
 
@@ -356,7 +455,7 @@ export default function DoctorDetailPage() {
               </div>
               <div className="flex justify-between border-t border-border pt-3">
                 <span className="text-muted-foreground">الكشفية:</span>
-                <span className="font-bold text-primary">{doctor.consultationFee?.toLocaleString()} ل.س</span>
+                <span className="font-bold text-primary">{(doctor.consultation_fee || 0).toLocaleString()} ل.س</span>
               </div>
             </div>
 
@@ -385,7 +484,14 @@ export default function DoctorDetailPage() {
                 onClick={handleBooking}
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'جاري الإرسال...' : 'إرسال طلب الحجز'}
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin ml-2" />
+                    جاري الإرسال...
+                  </>
+                ) : (
+                  'إرسال طلب الحجز'
+                )}
               </Button>
             </div>
           </div>
