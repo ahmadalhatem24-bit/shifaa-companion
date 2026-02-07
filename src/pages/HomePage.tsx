@@ -14,7 +14,8 @@ import {
   Clock,
   Shield,
   Heart,
-  ChevronLeft
+  ChevronLeft,
+  User
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,9 +27,21 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { PatientNavbar } from '@/components/layout/PatientNavbar';
-import { mockDoctors } from '@/data/mockData';
-import { SYRIAN_GOVERNORATES, MEDICAL_SPECIALIZATIONS } from '@/types';
-import { useState } from 'react';
+import { SYRIAN_GOVERNORATES } from '@/types';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { Skeleton } from '@/components/ui/skeleton';
+
+interface FeaturedDoctor {
+  id: string;
+  name: string;
+  specialization: string | null;
+  governorate: string | null;
+  avatar_url: string | null;
+  consultation_fee: number | null;
+  rating: number | null;
+  review_count: number | null;
+}
 
 const services = [
   { 
@@ -83,6 +96,33 @@ const features = [
 
 export default function HomePage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [featuredDoctors, setFeaturedDoctors] = useState<FeaturedDoctor[]>([]);
+  const [isLoadingDoctors, setIsLoadingDoctors] = useState(true);
+
+  useEffect(() => {
+    const fetchFeaturedDoctors = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('providers')
+          .select('id, name, specialization, governorate, avatar_url, consultation_fee, rating, review_count')
+          .eq('provider_type', 'doctor')
+          .order('rating', { ascending: false, nullsFirst: false })
+          .limit(3);
+
+        if (error) {
+          console.error('Error fetching featured doctors:', error);
+        } else {
+          setFeaturedDoctors(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching featured doctors:', error);
+      } finally {
+        setIsLoadingDoctors(false);
+      }
+    };
+
+    fetchFeaturedDoctors();
+  }, []);
 
   return (
     <div className="min-h-screen bg-background">
@@ -257,50 +297,76 @@ export default function HomePage() {
             </Button>
           </motion.div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {mockDoctors.slice(0, 3).map((doctor, i) => (
-              <motion.div
-                key={doctor.id}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="medical-card p-6"
-              >
-                <div className="flex items-start gap-4 mb-4">
-                  <img 
-                    src={doctor.avatar} 
-                    alt={doctor.name}
-                    className="h-16 w-16 rounded-xl object-cover"
-                  />
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{doctor.name}</h3>
-                    <p className="text-sm text-muted-foreground">{doctor.specialization}</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <Star className="h-4 w-4 fill-warning text-warning" />
-                      <span className="text-sm font-medium">{doctor.rating}</span>
-                      <span className="text-xs text-muted-foreground">({doctor.reviewCount} تقييم)</span>
+          {isLoadingDoctors ? (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-64 rounded-xl" />
+              ))}
+            </div>
+          ) : featuredDoctors.length === 0 ? (
+            <div className="text-center py-12">
+              <User className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">لا يوجد أطباء مسجلين حالياً</p>
+              <Button variant="outline" className="mt-4" asChild>
+                <Link to="/auth?mode=signup">سجّل كطبيب</Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredDoctors.map((doctor, i) => (
+                <motion.div
+                  key={doctor.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="medical-card p-6"
+                >
+                  <div className="flex items-start gap-4 mb-4">
+                    {doctor.avatar_url ? (
+                      <img 
+                        src={doctor.avatar_url} 
+                        alt={doctor.name}
+                        className="h-16 w-16 rounded-xl object-cover"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <User className="h-8 w-8 text-primary" />
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-lg">{doctor.name}</h3>
+                      <p className="text-sm text-muted-foreground">{doctor.specialization || 'طب عام'}</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        <Star className="h-4 w-4 fill-warning text-warning" />
+                        <span className="text-sm font-medium">{doctor.rating || 0}</span>
+                        <span className="text-xs text-muted-foreground">({doctor.review_count || 0} تقييم)</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
-                  <MapPin className="h-4 w-4" />
-                  <span>{doctor.governorate}</span>
-                </div>
+                  
+                  {doctor.governorate && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
+                      <MapPin className="h-4 w-4" />
+                      <span>{doctor.governorate}</span>
+                    </div>
+                  )}
 
-                <div className="flex items-center justify-between pt-4 border-t border-border">
-                  <div>
-                    <span className="text-xs text-muted-foreground">الكشفية</span>
-                    <p className="font-semibold text-primary">{doctor.consultationFee?.toLocaleString()} ل.س</p>
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <div>
+                      <span className="text-xs text-muted-foreground">الكشفية</span>
+                      <p className="font-semibold text-primary">
+                        {doctor.consultation_fee ? `${doctor.consultation_fee.toLocaleString()} ل.س` : 'غير محدد'}
+                      </p>
+                    </div>
+                    <Button variant="hero" size="sm" asChild>
+                      <Link to={`/doctors/${doctor.id}`}>احجز الآن</Link>
+                    </Button>
                   </div>
-                  <Button variant="hero" size="sm" asChild>
-                    <Link to={`/doctors/${doctor.id}`}>احجز الآن</Link>
-                  </Button>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
