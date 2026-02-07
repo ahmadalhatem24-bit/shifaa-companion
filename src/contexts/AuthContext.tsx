@@ -230,7 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         console.error("Error updating profile:", profileError);
       }
 
-      // If provider, create provider profile
+      // If provider, create provider profile using security definer function
       if (
         [
           "doctor",
@@ -248,18 +248,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           | "laboratory"
           | "dental"
           | "cosmetic";
-        const { error: providerError } = await supabase
-          .from("providers")
-          .insert({
-            user_id: authData.user.id,
-            name: data.name,
-            email: data.email,
-            provider_type: providerType,
-            license_number: data.licenseNumber,
-            specialization: data.specialization,
-            governorate: data.governorate,
-            address: data.address,
-          });
+        const { error: providerError } = await supabase.rpc(
+          "create_provider_profile",
+          {
+            _user_id: authData.user.id,
+            _name: data.name,
+            _email: data.email,
+            _provider_type: providerType,
+            _license_number: data.licenseNumber || null,
+            _specialization: data.specialization || null,
+            _governorate: data.governorate || null,
+            _address: data.address || null,
+          }
+        );
 
         if (providerError) {
           console.error("Error creating provider profile:", providerError);
