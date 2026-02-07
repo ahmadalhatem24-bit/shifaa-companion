@@ -112,35 +112,40 @@ export default function ProfilePage() {
 
     setSaving(true);
     try {
+      const updateData = {
+        full_name: formData.full_name || null,
+        phone: formData.phone || null,
+        gender: formData.gender || null,
+        date_of_birth: formData.date_of_birth || null,
+        governorate: formData.governorate || null,
+        city: formData.city || null,
+        street: formData.street || null,
+        blood_type: formData.blood_type || null,
+        height: formData.height ?? null,
+        weight: formData.weight ?? null,
+        marital_status: formData.marital_status || null,
+        emergency_contact_name: formData.emergency_contact_name || null,
+        emergency_contact_phone: formData.emergency_contact_phone || null,
+        emergency_contact_relation: formData.emergency_contact_relation || null,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log("Saving profile data:", updateData);
+
       const { error } = await supabase
         .from("profiles")
-        .update({
-          full_name: formData.full_name,
-          phone: formData.phone,
-          gender: formData.gender,
-          date_of_birth: formData.date_of_birth,
-          governorate: formData.governorate,
-          city: formData.city,
-          street: formData.street,
-          blood_type: formData.blood_type,
-          height: formData.height,
-          weight: formData.weight,
-          marital_status: formData.marital_status,
-          emergency_contact_name: formData.emergency_contact_name,
-          emergency_contact_phone: formData.emergency_contact_phone,
-          emergency_contact_relation: formData.emergency_contact_relation,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updateData)
         .eq("id", profile.id);
 
       if (error) throw error;
 
-      setProfile({ ...profile, ...formData } as Profile);
+      // Refetch profile to ensure we have the latest data
+      await fetchProfile(profile.user_id);
       setIsEditing(false);
-      toast.success("تم حفظ التغييرات بنجاح");
+      toast.success("تم حفظ جميع البيانات بنجاح");
     } catch (error: any) {
       console.error("Error saving profile:", error);
-      toast.error("خطأ في حفظ البيانات");
+      toast.error("خطأ في حفظ البيانات: " + error.message);
     } finally {
       setSaving(false);
     }
@@ -520,11 +525,11 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="number"
-                        value={formData.height || ""}
+                        value={formData.height ?? ""}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            height: Number(e.target.value),
+                            height: e.target.value ? Number(e.target.value) : null,
                           })
                         }
                         placeholder="170"
@@ -545,11 +550,11 @@ export default function ProfilePage() {
                     {isEditing ? (
                       <Input
                         type="number"
-                        value={formData.weight || ""}
+                        value={formData.weight ?? ""}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
-                            weight: Number(e.target.value),
+                            weight: e.target.value ? Number(e.target.value) : null,
                           })
                         }
                         placeholder="70"
