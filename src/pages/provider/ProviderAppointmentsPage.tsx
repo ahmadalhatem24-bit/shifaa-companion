@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { format } from 'date-fns';
 import { ar } from 'date-fns/locale';
@@ -11,7 +12,7 @@ import {
   MessageSquare,
   Phone,
   FileText,
-  ChevronLeft
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ProviderLayout } from '@/components/layout/ProviderLayout';
@@ -32,91 +33,33 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { useState } from 'react';
-import { AppointmentStatus } from '@/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { Database } from '@/integrations/supabase/types';
+
+type AppointmentStatus = Database['public']['Enums']['appointment_status'];
 
 interface ProviderAppointment {
   id: string;
-  patientId: string;
-  patientName: string;
-  patientAvatar?: string;
-  patientPhone: string;
-  patientAge: number;
-  date: Date;
-  time: string;
+  patient_id: string;
+  appointment_date: string;
+  appointment_time: string;
   status: AppointmentStatus;
-  notes?: string;
-  rejectionReason?: string;
-  createdAt: Date;
+  notes: string | null;
+  cancel_reason: string | null;
+  created_at: string;
+  profiles?: {
+    full_name: string;
+    phone: string | null;
+    avatar_url: string | null;
+    date_of_birth: string | null;
+  } | null;
 }
 
-const mockProviderAppointments: ProviderAppointment[] = [
-  {
-    id: 'apt1',
-    patientId: 'p1',
-    patientName: 'محمد العمر',
-    patientPhone: '+963 11 777 8888',
-    patientAge: 35,
-    date: new Date(),
-    time: '10:00',
-    status: 'pending',
-    notes: 'فحص دوري للقلب',
-    createdAt: new Date(Date.now() - 3600000),
-  },
-  {
-    id: 'apt2',
-    patientId: 'p2',
-    patientName: 'سارة أحمد',
-    patientAvatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face',
-    patientPhone: '+963 11 888 9999',
-    patientAge: 28,
-    date: new Date(),
-    time: '11:30',
-    status: 'pending',
-    createdAt: new Date(Date.now() - 7200000),
-  },
-  {
-    id: 'apt3',
-    patientId: 'p3',
-    patientName: 'أحمد خالد',
-    patientPhone: '+963 11 999 0000',
-    patientAge: 45,
-    date: new Date(Date.now() + 86400000),
-    time: '09:00',
-    status: 'confirmed',
-    notes: 'متابعة حالة ضغط الدم',
-    createdAt: new Date(Date.now() - 86400000),
-  },
-  {
-    id: 'apt4',
-    patientId: 'p4',
-    patientName: 'فاطمة علي',
-    patientAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face',
-    patientPhone: '+963 11 111 2222',
-    patientAge: 32,
-    date: new Date(Date.now() - 86400000),
-    time: '14:00',
-    status: 'completed',
-    createdAt: new Date(Date.now() - 86400000 * 3),
-  },
-  {
-    id: 'apt5',
-    patientId: 'p5',
-    patientName: 'خالد محمود',
-    patientPhone: '+963 11 222 3333',
-    patientAge: 50,
-    date: new Date(Date.now() - 86400000 * 2),
-    time: '16:00',
-    status: 'cancelled',
-    rejectionReason: 'طلب المريض إلغاء الموعد',
-    createdAt: new Date(Date.now() - 86400000 * 4),
-  },
-];
-
-const statusConfig = {
+const statusConfig: Record<AppointmentStatus, { label: string; className: string }> = {
   pending: { 
     label: 'بانتظار الموافقة', 
     className: 'bg-warning/10 text-warning border-warning/30',
@@ -136,23 +79,113 @@ const statusConfig = {
 };
 
 export default function ProviderAppointmentsPage() {
-  const [appointments, setAppointments] = useState(mockProviderAppointments);
+  const { user } = useAuth();
+  const [appointments, setAppointments] = useState<ProviderAppointment[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [selectedAppointment, setSelectedAppointment] = useState<ProviderAppointment | null>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [providerId, setProviderId] = useState<string | null>(null);
 
-  const updateStatus = (id: string, status: AppointmentStatus, reason?: string) => {
-    setAppointments(prev => 
-      prev.map(apt => apt.id === id ? { ...apt, status, rejectionReason: reason } : apt)
-    );
-    
-    const messages = {
-      confirmed: 'تم تأكيد الموعد وإشعار المريض',
-      completed: 'تم إكمال الموعد بنجاح',
-      cancelled: 'تم رفض الموعد وإشعار المريض',
-    };
-    
-    toast.success(messages[status] || 'تم تحديث الموعد');
+  useEffect(() => {
+    if (user) {
+      fetchProviderId();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (providerId) {
+      fetchAppointments();
+    }
+  }, [providerId]);
+
+  const fetchProviderId = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('providers')
+        .select('id')
+        .eq('user_id', user?.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (data) {
+        setProviderId(data.id);
+      } else {
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error('Error fetching provider:', error);
+      setLoading(false);
+    }
+  };
+
+  const fetchAppointments = async () => {
+    try {
+      // Fetch appointments first
+      const { data: appointmentsData, error: appointmentsError } = await supabase
+        .from('appointments')
+        .select('*')
+        .eq('provider_id', providerId)
+        .order('appointment_date', { ascending: true })
+        .order('appointment_time', { ascending: true });
+
+      if (appointmentsError) throw appointmentsError;
+
+      // Fetch patient profiles for each appointment
+      const patientIds = [...new Set(appointmentsData?.map(apt => apt.patient_id) || [])];
+      
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('user_id, full_name, phone, avatar_url, date_of_birth')
+        .in('user_id', patientIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine data
+      const profilesMap = new Map(profilesData?.map(p => [p.user_id, p]) || []);
+      const combinedData = appointmentsData?.map(apt => ({
+        ...apt,
+        profiles: profilesMap.get(apt.patient_id)
+      })) || [];
+
+      setAppointments(combinedData as ProviderAppointment[]);
+    } catch (error) {
+      console.error('Error fetching appointments:', error);
+      toast.error('خطأ في تحميل المواعيد');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateStatus = async (id: string, status: AppointmentStatus, reason?: string) => {
+    try {
+      const updateData: any = { status };
+      if (reason) {
+        updateData.cancel_reason = reason;
+      }
+
+      const { error } = await supabase
+        .from('appointments')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setAppointments(prev => 
+        prev.map(apt => apt.id === id ? { ...apt, status, cancel_reason: reason || apt.cancel_reason } : apt)
+      );
+      
+      const messages: Record<string, string> = {
+        confirmed: 'تم تأكيد الموعد وإشعار المريض',
+        completed: 'تم إكمال الموعد بنجاح',
+        cancelled: 'تم رفض الموعد وإشعار المريض',
+      };
+      
+      toast.success(messages[status] || 'تم تحديث الموعد');
+    } catch (error) {
+      console.error('Error updating appointment:', error);
+      toast.error('خطأ في تحديث الموعد');
+    }
   };
 
   const handleReject = () => {
@@ -169,7 +202,29 @@ export default function ProviderAppointmentsPage() {
     return appointments.filter(apt => apt.status === status);
   };
 
+  const calculateAge = (birthDate: string | null) => {
+    if (!birthDate) return null;
+    const today = new Date();
+    const birth = new Date(birthDate);
+    let age = today.getFullYear() - birth.getFullYear();
+    const monthDiff = today.getMonth() - birth.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
   const pendingCount = appointments.filter(apt => apt.status === 'pending').length;
+
+  if (loading) {
+    return (
+      <ProviderLayout>
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </ProviderLayout>
+    );
+  }
 
   return (
     <ProviderLayout>
@@ -207,10 +262,10 @@ export default function ProviderAppointmentsPage() {
             <TabsTrigger value="cancelled">ملغاة</TabsTrigger>
           </TabsList>
 
-          {['pending', 'confirmed', 'completed', 'cancelled'].map((status) => (
+          {(['pending', 'confirmed', 'completed', 'cancelled'] as AppointmentStatus[]).map((status) => (
             <TabsContent key={status} value={status} className="mt-6">
               <div className="space-y-4">
-                {filterByStatus(status as AppointmentStatus).length === 0 ? (
+                {filterByStatus(status).length === 0 ? (
                   <div className="text-center py-16">
                     <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
                       <Calendar className="h-8 w-8 text-muted-foreground" />
@@ -218,155 +273,160 @@ export default function ProviderAppointmentsPage() {
                     <p className="text-muted-foreground">لا توجد مواعيد</p>
                   </div>
                 ) : (
-                  filterByStatus(status as AppointmentStatus).map((apt, i) => (
-                    <motion.div
-                      key={apt.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className={cn(
-                        "medical-card p-6 border-r-4",
-                        apt.status === 'pending' && "border-r-warning",
-                        apt.status === 'confirmed' && "border-r-success",
-                        apt.status === 'completed' && "border-r-muted-foreground",
-                        apt.status === 'cancelled' && "border-r-destructive"
-                      )}
-                    >
-                      <div className="flex flex-col lg:flex-row gap-4">
-                        {/* Patient Info */}
-                        <div className="flex items-start gap-4 flex-1">
-                          {apt.patientAvatar ? (
-                            <img 
-                              src={apt.patientAvatar} 
-                              alt={apt.patientName}
-                              className="h-14 w-14 rounded-xl object-cover"
-                            />
-                          ) : (
-                            <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
-                              <User className="h-7 w-7 text-primary" />
+                  filterByStatus(status).map((apt, i) => {
+                    const age = calculateAge(apt.profiles?.date_of_birth || null);
+                    return (
+                      <motion.div
+                        key={apt.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05 }}
+                        className={cn(
+                          "medical-card p-6 border-r-4",
+                          apt.status === 'pending' && "border-r-warning",
+                          apt.status === 'confirmed' && "border-r-success",
+                          apt.status === 'completed' && "border-r-muted-foreground",
+                          apt.status === 'cancelled' && "border-r-destructive"
+                        )}
+                      >
+                        <div className="flex flex-col lg:flex-row gap-4">
+                          {/* Patient Info */}
+                          <div className="flex items-start gap-4 flex-1">
+                            {apt.profiles?.avatar_url ? (
+                              <img 
+                                src={apt.profiles.avatar_url} 
+                                alt={apt.profiles.full_name}
+                                className="h-14 w-14 rounded-xl object-cover"
+                              />
+                            ) : (
+                              <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center">
+                                <User className="h-7 w-7 text-primary" />
+                              </div>
+                            )}
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-lg">{apt.profiles?.full_name || 'مريض'}</h3>
+                              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
+                                {age && <span>{age} سنة</span>}
+                                {apt.profiles?.phone && (
+                                  <span className="flex items-center gap-1">
+                                    <Phone className="h-3 w-3" />
+                                    <span dir="ltr">{apt.profiles.phone}</span>
+                                  </span>
+                                )}
+                              </div>
+                              {apt.notes && (
+                                <p className="text-sm text-muted-foreground mt-2 flex items-start gap-1">
+                                  <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                                  {apt.notes}
+                                </p>
+                              )}
                             </div>
-                          )}
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-lg">{apt.patientName}</h3>
-                            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <span>{apt.patientAge} سنة</span>
-                              <span className="flex items-center gap-1">
-                                <Phone className="h-3 w-3" />
-                                <span dir="ltr">{apt.patientPhone}</span>
+                          </div>
+
+                          {/* Date & Actions */}
+                          <div className="flex flex-col items-start lg:items-end gap-3">
+                            <span className={cn(
+                              "px-3 py-1.5 rounded-full text-sm font-medium border",
+                              statusConfig[apt.status].className
+                            )}>
+                              {statusConfig[apt.status].label}
+                            </span>
+                            
+                            <div className="flex items-center gap-4 text-sm">
+                              <span className="flex items-center gap-1 font-medium">
+                                <Calendar className="h-4 w-4 text-primary" />
+                                {format(new Date(apt.appointment_date), "d MMMM yyyy", { locale: ar })}
+                              </span>
+                              <span className="flex items-center gap-1 font-medium">
+                                <Clock className="h-4 w-4 text-primary" />
+                                {apt.appointment_time}
                               </span>
                             </div>
-                            {apt.notes && (
-                              <p className="text-sm text-muted-foreground mt-2 flex items-start gap-1">
-                                <MessageSquare className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                                {apt.notes}
-                              </p>
-                            )}
-                          </div>
-                        </div>
 
-                        {/* Date & Actions */}
-                        <div className="flex flex-col items-start lg:items-end gap-3">
-                          <span className={cn(
-                            "px-3 py-1.5 rounded-full text-sm font-medium border",
-                            statusConfig[apt.status].className
-                          )}>
-                            {statusConfig[apt.status].label}
-                          </span>
-                          
-                          <div className="flex items-center gap-4 text-sm">
-                            <span className="flex items-center gap-1 font-medium">
-                              <Calendar className="h-4 w-4 text-primary" />
-                              {format(apt.date, "d MMMM yyyy", { locale: ar })}
-                            </span>
-                            <span className="flex items-center gap-1 font-medium">
-                              <Clock className="h-4 w-4 text-primary" />
-                              {apt.time}
-                            </span>
-                          </div>
+                            {/* Action Buttons */}
+                            <div className="flex gap-2 mt-2">
+                              {apt.status === 'pending' && (
+                                <>
+                                  <Button 
+                                    variant="success" 
+                                    size="sm"
+                                    onClick={() => updateStatus(apt.id, 'confirmed')}
+                                  >
+                                    <Check className="h-4 w-4" />
+                                    قبول
+                                  </Button>
+                                  <Button 
+                                    variant="destructive" 
+                                    size="sm"
+                                    onClick={() => {
+                                      setSelectedAppointment(apt);
+                                      setShowRejectDialog(true);
+                                    }}
+                                  >
+                                    <X className="h-4 w-4" />
+                                    رفض
+                                  </Button>
+                                </>
+                              )}
 
-                          {/* Action Buttons */}
-                          <div className="flex gap-2 mt-2">
-                            {apt.status === 'pending' && (
-                              <>
-                                <Button 
-                                  variant="success" 
-                                  size="sm"
-                                  onClick={() => updateStatus(apt.id, 'confirmed')}
-                                >
-                                  <Check className="h-4 w-4" />
-                                  قبول
-                                </Button>
-                                <Button 
-                                  variant="destructive" 
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedAppointment(apt);
-                                    setShowRejectDialog(true);
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                  رفض
-                                </Button>
-                              </>
-                            )}
+                              {apt.status === 'confirmed' && (
+                                <>
+                                  <Button variant="hero" size="sm" asChild>
+                                    <Link to={`/provider/patients/${apt.patient_id}`}>
+                                      <FileText className="h-4 w-4" />
+                                      الملف الطبي
+                                    </Link>
+                                  </Button>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="outline" size="sm">
+                                        <MoreVertical className="h-4 w-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem onClick={() => updateStatus(apt.id, 'completed')}>
+                                        <Check className="h-4 w-4 ml-2" />
+                                        تم الفحص
+                                      </DropdownMenuItem>
+                                      <DropdownMenuSeparator />
+                                      <DropdownMenuItem 
+                                        onClick={() => {
+                                          setSelectedAppointment(apt);
+                                          setShowRejectDialog(true);
+                                        }}
+                                        className="text-destructive"
+                                      >
+                                        <X className="h-4 w-4 ml-2" />
+                                        إلغاء الموعد
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </>
+                              )}
 
-                            {apt.status === 'confirmed' && (
-                              <>
-                                <Button variant="hero" size="sm" asChild>
-                                  <Link to={`/provider/patients/${apt.patientId}`}>
+                              {apt.status === 'completed' && (
+                                <Button variant="outline" size="sm" asChild>
+                                  <Link to={`/provider/patients/${apt.patient_id}`}>
                                     <FileText className="h-4 w-4" />
-                                    الملف الطبي
+                                    عرض الملف
                                   </Link>
                                 </Button>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="sm">
-                                      <MoreVertical className="h-4 w-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem onClick={() => updateStatus(apt.id, 'completed')}>
-                                      <Check className="h-4 w-4 ml-2" />
-                                      تم الفحص
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem 
-                                      onClick={() => {
-                                        setSelectedAppointment(apt);
-                                        setShowRejectDialog(true);
-                                      }}
-                                      className="text-destructive"
-                                    >
-                                      <X className="h-4 w-4 ml-2" />
-                                      إلغاء الموعد
-                                    </DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </>
-                            )}
-
-                            {apt.status === 'completed' && (
-                              <Button variant="outline" size="sm" asChild>
-                                <Link to={`/provider/patients/${apt.patientId}`}>
-                                  <FileText className="h-4 w-4" />
-                                  عرض الملف
-                                </Link>
-                              </Button>
-                            )}
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Rejection Reason */}
-                      {apt.status === 'cancelled' && apt.rejectionReason && (
-                        <div className="mt-4 p-3 bg-destructive/5 rounded-lg border border-destructive/20">
-                          <p className="text-sm text-destructive">
-                            <strong>سبب الإلغاء:</strong> {apt.rejectionReason}
-                          </p>
-                        </div>
-                      )}
-                    </motion.div>
-                  ))
+                        {/* Rejection Reason */}
+                        {apt.status === 'cancelled' && apt.cancel_reason && (
+                          <div className="mt-4 p-3 bg-destructive/5 rounded-lg border border-destructive/20">
+                            <p className="text-sm text-destructive">
+                              <strong>سبب الإلغاء:</strong> {apt.cancel_reason}
+                            </p>
+                          </div>
+                        )}
+                      </motion.div>
+                    );
+                  })
                 )}
               </div>
             </TabsContent>
@@ -387,10 +447,10 @@ export default function ProviderAppointmentsPage() {
           <div className="space-y-4">
             {selectedAppointment && (
               <div className="p-4 bg-secondary/50 rounded-xl">
-                <p className="font-medium">{selectedAppointment.patientName}</p>
+                <p className="font-medium">{selectedAppointment.profiles?.full_name || 'مريض'}</p>
                 <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                  <span>{format(selectedAppointment.date, "d MMMM yyyy", { locale: ar })}</span>
-                  <span>{selectedAppointment.time}</span>
+                  <span>{format(new Date(selectedAppointment.appointment_date), "d MMMM yyyy", { locale: ar })}</span>
+                  <span>{selectedAppointment.appointment_time}</span>
                 </div>
               </div>
             )}

@@ -27,6 +27,8 @@ import HospitalDashboard from "./pages/provider/HospitalDashboard";
 import DentalDashboard from "./pages/provider/DentalDashboard";
 import CosmeticDashboard from "./pages/provider/CosmeticDashboard";
 import ProviderAppointmentsPage from "./pages/provider/ProviderAppointmentsPage";
+import ProviderPatientsPage from "./pages/provider/ProviderPatientsPage";
+import PatientMedicalRecordPage from "./pages/provider/PatientMedicalRecordPage";
 import SystemCheckPage from "./pages/SystemCheckPage";
 import NotFound from "./pages/NotFound";
 
@@ -165,6 +167,40 @@ const App = () => (
                   ]}
                 >
                   <ProviderAppointmentsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/patients"
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    "doctor",
+                    "pharmacist",
+                    "hospital",
+                    "laboratory",
+                    "dental",
+                    "cosmetic",
+                  ]}
+                >
+                  <ProviderPatientsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/provider/patients/:patientId"
+              element={
+                <ProtectedRoute
+                  allowedRoles={[
+                    "doctor",
+                    "pharmacist",
+                    "hospital",
+                    "laboratory",
+                    "dental",
+                    "cosmetic",
+                  ]}
+                >
+                  <PatientMedicalRecordPage />
                 </ProtectedRoute>
               }
             />
