@@ -91,6 +91,8 @@ const roles: {
   },
 ];
 
+// Note: admin role is not available for signup - only existing admins can create new admins
+
 // Schema for login - only email and password required
 const loginSchema = z.object({
   email: z.string().email("البريد الإلكتروني غير صالح"),
