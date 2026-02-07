@@ -57,8 +57,19 @@ interface Profile {
 }
 
 const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
-const maritalStatuses = ["أعزب", "متزوج", "مطلق", "أرمل"];
+const maritalStatuses = [
+  { value: "single", label: "أعزب" },
+  { value: "married", label: "متزوج" },
+  { value: "divorced", label: "مطلق" },
+  { value: "widowed", label: "أرمل" },
+];
 const relations = ["أب", "أم", "زوج/زوجة", "ابن/ابنة", "أخ/أخت", "صديق", "آخر"];
+
+const getMaritalStatusLabel = (value: string | null) => {
+  if (!value) return "-";
+  const status = maritalStatuses.find((s) => s.value === value);
+  return status?.label || value;
+};
 
 export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
@@ -402,15 +413,15 @@ export default function ProfilePage() {
                         </SelectTrigger>
                         <SelectContent>
                           {maritalStatuses.map((status) => (
-                            <SelectItem key={status} value={status}>
-                              {status}
+                            <SelectItem key={status.value} value={status.value}>
+                              {status.label}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     ) : (
                       <p className="p-3 bg-secondary/30 rounded-lg">
-                        {profile?.marital_status || "-"}
+                        {getMaritalStatusLabel(profile?.marital_status || null)}
                       </p>
                     )}
                   </div>
